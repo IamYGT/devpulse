@@ -516,7 +516,7 @@ export default function SettingsPage() {
         <div style={sectionGap}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-              Mevcut surum: <strong style={{ color: "var(--accent-blue)" }}>v0.2.0</strong>
+              Mevcut surum: <strong style={{ color: "var(--accent-blue)" }}>v0.3.1</strong>
             </span>
             <button
               className="btn btn-primary"
@@ -594,7 +594,7 @@ export default function SettingsPage() {
                 color: "var(--text-primary)",
               }}
             >
-              0.1.0
+              0.3.1
             </span>
             <br />
             <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Teknoloji</span>{" "}
