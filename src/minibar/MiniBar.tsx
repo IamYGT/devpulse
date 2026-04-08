@@ -11,13 +11,6 @@ function formatTime(seconds: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-function formatMinutes(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
-
 function extractProjectName(raw: string | null, processName: string): string {
   if (!raw) return processName || "---";
   // If it looks like a path, take the last segment
@@ -26,12 +19,6 @@ function extractProjectName(raw: string | null, processName: string): string {
     return segments[segments.length - 1] || raw;
   }
   return raw;
-}
-
-function extractFileName(raw: string | null): string | null {
-  if (!raw) return null;
-  const segments = raw.split(/[/\\]/).filter(Boolean);
-  return segments[segments.length - 1] || null;
 }
 
 async function openDashboard() {
@@ -166,8 +153,6 @@ export default function MiniBar() {
       : 0;
 
   const projectDisplay = extractProjectName(state.current_project, state.current_process_name);
-  const fileDisplay = extractFileName(state.current_file);
-  const branchDisplay = state.current_branch;
   const showBudgetWarning = budgetPct >= 80 && budgetPct < 100;
   const showBudgetDanger = budgetPct >= 100;
 
@@ -182,108 +167,45 @@ export default function MiniBar() {
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
     >
-      {/* Left: Project + Branch + File + Badges */}
-      <div className="minibar-left">
-        <span className={`minibar-project ${state.current_category}`}>
-          {projectDisplay}
-        </span>
+      {/* Project name */}
+      <span className={`minibar-project ${state.current_category}`}>
+        {projectDisplay}
+      </span>
 
-        {(branchDisplay || fileDisplay) && (
-          <div className="minibar-meta">
-            {branchDisplay && (
-              <>
-                <span className="minibar-separator">/</span>
-                <span className="minibar-branch">{branchDisplay}</span>
-              </>
-            )}
-            {fileDisplay && (
-              <>
-                <span className="minibar-separator">/</span>
-                <span className="minibar-file">{fileDisplay}</span>
-              </>
-            )}
-          </div>
-        )}
+      <span className="minibar-dot" />
 
-        {state.is_idle && <span className="minibar-badge idle">IDLE</span>}
-        {!state.is_tracking && <span className="minibar-badge paused">PAUSED</span>}
-      </div>
+      {/* Timer */}
+      <span className="minibar-timer">{formatTime(state.elapsed_seconds)}</span>
 
-      {/* Drag spacer */}
-      <div className="drag-spacer" data-tauri-drag-region />
+      <span className="minibar-dot" />
 
-      {/* Center: Timer */}
-      <div className="minibar-center" data-tauri-drag-region>
-        <span className="minibar-timer">{formatTime(state.elapsed_seconds)}</span>
-      </div>
+      {/* Productivity % */}
+      <span className="minibar-stat">
+        <span className="stat-value">{state.productivity_percentage.toFixed(0)}%</span>
+      </span>
 
-      {/* Drag spacer */}
-      <div className="drag-spacer" data-tauri-drag-region />
+      <span className="minibar-dot" />
 
-      {/* Right: Budget + Stats */}
-      <div className="minibar-right">
-        {/* Budget warning */}
-        {showBudgetDanger && (
-          <div className="minibar-budget danger">
-            <span>OVER</span>
-            <div className="budget-bar">
-              <div className="budget-fill" style={{ width: "100%" }} />
-            </div>
-          </div>
-        )}
-        {showBudgetWarning && (
-          <div className="minibar-budget warning">
-            <span>{budgetPct.toFixed(0)}%</span>
-            <div className="budget-bar">
-              <div className="budget-fill" style={{ width: `${Math.min(budgetPct, 100)}%` }} />
-            </div>
-          </div>
-        )}
+      {/* Commits */}
+      <span className="minibar-stat">
+        <span className="stat-value">{state.today_commits}c</span>
+      </span>
 
-        {(showBudgetWarning || showBudgetDanger) && (
-          <div className="minibar-stat-divider" />
-        )}
+      {/* Badges */}
+      {state.is_idle && <span className="minibar-badge idle">Z</span>}
+      {!state.is_tracking && <span className="minibar-badge paused">P</span>}
 
-        {/* Commits */}
-        <span className="minibar-stat">
-          <span className="stat-icon">C</span>
-          <span className="stat-value">{state.today_commits}</span>
-        </span>
+      {/* Budget */}
+      {showBudgetDanger && <span className="minibar-budget danger">!</span>}
+      {showBudgetWarning && <span className="minibar-budget warning">{budgetPct.toFixed(0)}%</span>}
 
-        <div className="minibar-stat-divider" />
-
-        {/* Productivity */}
-        <span className="minibar-stat">
-          <span className="stat-value">{state.productivity_percentage.toFixed(0)}%</span>
-        </span>
-
-        <div className="minibar-stat-divider" />
-
-        {/* Total time */}
-        <span className="minibar-stat">
-          <span className="stat-value">{formatMinutes(state.today_total_minutes)}</span>
-        </span>
-      </div>
-
-      {/* Quick Action Buttons */}
+      {/* Quick actions on hover */}
       <div className="minibar-actions">
-        <button
-          className="minibar-action-btn"
-          onClick={handleToggleTracking}
-          title={state.is_tracking ? "Pause tracking" : "Resume tracking"}
-        >
+        <button className="minibar-action-btn" onClick={handleToggleTracking}>
           {state.is_tracking ? "\u23F8" : "\u25B6"}
         </button>
-        <button
-          className="minibar-action-btn"
-          onClick={openDashboard}
-          title="Open Dashboard"
-        >
-          {"\uD83D\uDCCA"}
-        </button>
       </div>
 
-      {/* Resize handle */}
       <div className="minibar-resize-handle" />
     </div>
   );
