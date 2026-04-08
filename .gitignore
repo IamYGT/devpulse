@@ -1,0 +1,40 @@
+# Rust
+target/
+src-tauri/target/
+
+# Node
+node_modules/
+dist/
+
+# Database
+*.db
+*.db-wal
+*.db-shm
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.deb
+
+# Tauri
+src-tauri/gen/
+
+# Signing keys (NEVER commit)
+*.key
+*.pem
+
+# Temp
+app-icon.png

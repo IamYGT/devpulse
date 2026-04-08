@@ -1,0 +1,70 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-config-schema/schema.json",
+  "productName": "DevPulse",
+  "version": "0.2.0",
+  "identifier": "com.ygtlabs.devpulse",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false,
+      "tooltip": "DevPulse - Productivity Tracker"
+    },
+    "windows": [
+      {
+        "label": "dashboard",
+        "title": "DevPulse Dashboard",
+        "url": "/",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "center": true,
+        "visible": false,
+        "decorations": true
+      },
+      {
+        "label": "minibar",
+        "title": "DevPulse MiniBar",
+        "url": "/minibar.html",
+        "width": 800,
+        "height": 36,
+        "minWidth": 300,
+        "minHeight": 30,
+        "maxHeight": 120,
+        "resizable": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "x": 560,
+        "y": 0
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "createUpdaterArtifacts": "v1Compatible"
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/IamYGT/devpulse/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERFQ0JBNEFGQkQ0OTNBOTIKUldTU09rbTlyNlRMM2t2SVJFWTRkM1pHTlZ0QTJkc3NUTVIwNTBWc0lqa0RQWHprU1ZwaWlJT0IK"
+    }
+  }
+}

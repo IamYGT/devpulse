@@ -1,0 +1,8 @@
+pub mod window_tracker;
+pub mod idle_detector;
+pub mod process_info;
+pub mod vscode_detector;
+pub mod git_monitor;
+pub mod claude_detector;
+pub mod categorizer;
+pub mod project_detector;
