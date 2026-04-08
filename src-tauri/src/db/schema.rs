@@ -67,6 +67,33 @@ pub fn initialize_database(conn: &Connection) -> rusqlite::Result<()> {
         CREATE INDEX IF NOT EXISTS idx_git_events_timestamp ON git_events(timestamp);
         CREATE INDEX IF NOT EXISTS idx_git_events_project ON git_events(project_id);
         CREATE INDEX IF NOT EXISTS idx_daily_summaries_date ON daily_summaries(date);
+
+        CREATE TABLE IF NOT EXISTS browser_tabs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            url TEXT,
+            domain TEXT,
+            title TEXT,
+            duration_seconds INTEGER DEFAULT 0,
+            category TEXT DEFAULT 'neutral'
+        );
+        CREATE INDEX IF NOT EXISTS idx_browser_tabs_timestamp ON browser_tabs(timestamp);
+
+        CREATE TABLE IF NOT EXISTS vscode_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            workspace TEXT,
+            workspace_path TEXT,
+            active_file TEXT,
+            language TEXT,
+            branch TEXT,
+            dirty_files INTEGER DEFAULT 0,
+            open_tabs INTEGER DEFAULT 0,
+            is_debugging INTEGER DEFAULT 0,
+            terminal_active INTEGER DEFAULT 0,
+            duration_seconds INTEGER DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_vscode_events_timestamp ON vscode_events(timestamp);
         ",
     )?;
 

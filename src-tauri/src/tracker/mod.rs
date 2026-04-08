@@ -6,3 +6,4 @@ pub mod git_monitor;
 pub mod claude_detector;
 pub mod categorizer;
 pub mod project_detector;
+pub mod http_receiver;

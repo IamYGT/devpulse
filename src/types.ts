@@ -25,6 +25,15 @@ export interface TrackerState {
   productivity_percentage: number;
   budget_used_minutes: number;
   budget_limit_minutes: number;
+  current_url: string | null;
+  current_domain: string | null;
+  current_language: string | null;
+  vscode_open_tabs: number;
+  vscode_dirty_files: number;
+  vscode_is_debugging: boolean;
+  vscode_terminal_active: boolean;
+  claude_is_active: boolean;
+  claude_session_minutes: number;
 }
 
 export interface TimelineEntry {
@@ -79,4 +88,34 @@ export interface ProjectStats {
   today_commits: number;
   current_branch: string | null;
   budget_percentage: number;
+}
+
+export interface BrowserTab {
+  id: number;
+  timestamp: string;
+  url: string | null;
+  domain: string | null;
+  title: string | null;
+  duration_seconds: number;
+  category: string;
+}
+
+export interface VscodeEvent {
+  id: number;
+  timestamp: string;
+  workspace: string | null;
+  active_file: string | null;
+  language: string | null;
+  branch: string | null;
+  dirty_files: number;
+  open_tabs: number;
+  is_debugging: boolean;
+  terminal_active: boolean;
+  duration_seconds: number;
+}
+
+export interface LanguageTime {
+  language: string;
+  total_minutes: number;
+  percentage: number;
 }

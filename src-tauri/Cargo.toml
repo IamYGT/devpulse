@@ -1,6 +1,6 @@
 [package]
 name = "devpulse"
-version = "0.2.0"
+version = "0.3.0"
 description = "YGT Labs AI DevPulse - Developer Productivity Tracker"
 authors = ["Ercan"]
 edition = "2021"
@@ -26,6 +26,7 @@ chrono = { version = "0.4", features = ["serde"] }
 tokio = { version = "1", features = ["full"] }
 sysinfo = "0.30"
 git2 = { version = "0.18", features = ["vendored-libgit2"] }
+tiny_http = "0.12"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = [

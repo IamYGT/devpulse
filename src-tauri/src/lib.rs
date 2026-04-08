@@ -99,6 +99,10 @@ pub fn run() {
             goals::commands::get_streaks,
             goals::commands::set_daily_goal,
             goals::commands::get_daily_goals,
+            // Extension data commands
+            commands::get_browser_history,
+            commands::get_vscode_history,
+            commands::get_language_breakdown,
         ])
         .setup(move |app| {
             // Setup system tray
@@ -167,6 +171,12 @@ pub fn run() {
                     std::thread::sleep(std::time::Duration::from_secs(2));
                 }
             });
+
+            // Start HTTP receiver for extensions
+            let http_state = tracker_state.clone();
+            let http_db = db_path.clone();
+            let receiver = tracker::http_receiver::HttpReceiver::new(http_state, http_db);
+            receiver.start();
 
             Ok(())
         })

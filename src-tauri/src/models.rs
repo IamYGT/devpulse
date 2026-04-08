@@ -74,6 +74,15 @@ pub struct TrackerState {
     pub productivity_percentage: f64,
     pub budget_used_minutes: i64,
     pub budget_limit_minutes: i64,
+    pub current_url: Option<String>,
+    pub current_domain: Option<String>,
+    pub current_language: Option<String>,
+    pub vscode_open_tabs: i32,
+    pub vscode_dirty_files: i32,
+    pub vscode_is_debugging: bool,
+    pub vscode_terminal_active: bool,
+    pub claude_is_active: bool,
+    pub claude_session_minutes: i64,
 }
 
 impl Default for TrackerState {
@@ -96,6 +105,15 @@ impl Default for TrackerState {
             productivity_percentage: 0.0,
             budget_used_minutes: 0,
             budget_limit_minutes: 0,
+            current_url: None,
+            current_domain: None,
+            current_language: None,
+            vscode_open_tabs: 0,
+            vscode_dirty_files: 0,
+            vscode_is_debugging: false,
+            vscode_terminal_active: false,
+            claude_is_active: false,
+            claude_session_minutes: 0,
         }
     }
 }

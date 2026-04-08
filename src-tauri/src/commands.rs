@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use serde::Serialize;
 use crate::db::queries;
 use crate::models::*;
 
@@ -100,4 +101,172 @@ pub fn get_setting(state: tauri::State<'_, AppState>, key: String) -> Option<Str
         rusqlite::params![key],
         |row| row.get(0),
     ).ok()
+}
+
+// --- Extension data structs ---
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BrowserTab {
+    pub id: i64,
+    pub timestamp: String,
+    pub url: Option<String>,
+    pub domain: Option<String>,
+    pub title: Option<String>,
+    pub duration_seconds: i64,
+    pub category: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct VscodeEvent {
+    pub id: i64,
+    pub timestamp: String,
+    pub workspace: Option<String>,
+    pub active_file: Option<String>,
+    pub language: Option<String>,
+    pub branch: Option<String>,
+    pub dirty_files: i32,
+    pub open_tabs: i32,
+    pub is_debugging: bool,
+    pub terminal_active: bool,
+    pub duration_seconds: i64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct LanguageTime {
+    pub language: String,
+    pub total_minutes: f64,
+    pub percentage: f64,
+}
+
+// --- Extension data commands ---
+
+#[tauri::command]
+pub fn get_browser_history(state: tauri::State<'_, AppState>, date: String) -> Vec<BrowserTab> {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+
+    let date_start = format!("{}T00:00:00", date);
+    let date_end = format!("{}T23:59:59", date);
+
+    let mut stmt = match conn.prepare(
+        "SELECT id, timestamp, url, domain, title, duration_seconds, category
+         FROM browser_tabs
+         WHERE timestamp >= ?1 AND timestamp <= ?2
+         ORDER BY timestamp DESC",
+    ) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    let rows = match stmt.query_map(rusqlite::params![date_start, date_end], |row| {
+        Ok(BrowserTab {
+            id: row.get(0)?,
+            timestamp: row.get(1)?,
+            url: row.get(2)?,
+            domain: row.get(3)?,
+            title: row.get(4)?,
+            duration_seconds: row.get(5)?,
+            category: row.get::<_, String>(6).unwrap_or_else(|_| "neutral".to_string()),
+        })
+    }) {
+        Ok(r) => r,
+        Err(_) => return Vec::new(),
+    };
+
+    rows.filter_map(|r| r.ok()).collect()
+}
+
+#[tauri::command]
+pub fn get_vscode_history(state: tauri::State<'_, AppState>, date: String) -> Vec<VscodeEvent> {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+
+    let date_start = format!("{}T00:00:00", date);
+    let date_end = format!("{}T23:59:59", date);
+
+    let mut stmt = match conn.prepare(
+        "SELECT id, timestamp, workspace, active_file, language, branch,
+                dirty_files, open_tabs, is_debugging, terminal_active, duration_seconds
+         FROM vscode_events
+         WHERE timestamp >= ?1 AND timestamp <= ?2
+         ORDER BY timestamp DESC",
+    ) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    let rows = match stmt.query_map(rusqlite::params![date_start, date_end], |row| {
+        Ok(VscodeEvent {
+            id: row.get(0)?,
+            timestamp: row.get(1)?,
+            workspace: row.get(2)?,
+            active_file: row.get(3)?,
+            language: row.get(4)?,
+            branch: row.get(5)?,
+            dirty_files: row.get(6)?,
+            open_tabs: row.get(7)?,
+            is_debugging: row.get::<_, i32>(8).unwrap_or(0) != 0,
+            terminal_active: row.get::<_, i32>(9).unwrap_or(0) != 0,
+            duration_seconds: row.get(10)?,
+        })
+    }) {
+        Ok(r) => r,
+        Err(_) => return Vec::new(),
+    };
+
+    rows.filter_map(|r| r.ok()).collect()
+}
+
+#[tauri::command]
+pub fn get_language_breakdown(state: tauri::State<'_, AppState>, date: String) -> Vec<LanguageTime> {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+
+    let date_start = format!("{}T00:00:00", date);
+    let date_end = format!("{}T23:59:59", date);
+
+    let mut stmt = match conn.prepare(
+        "SELECT language, COUNT(*) as event_count
+         FROM vscode_events
+         WHERE timestamp >= ?1 AND timestamp <= ?2
+           AND language IS NOT NULL AND language != ''
+         GROUP BY language
+         ORDER BY event_count DESC",
+    ) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    let rows: Vec<(String, f64)> = match stmt.query_map(rusqlite::params![date_start, date_end], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, f64>(1)?,
+        ))
+    }) {
+        Ok(r) => r.filter_map(|r| r.ok()).collect(),
+        Err(_) => return Vec::new(),
+    };
+
+    let total: f64 = rows.iter().map(|(_, count)| count).sum();
+
+    rows.into_iter()
+        .map(|(lang, count)| {
+            let percentage = if total > 0.0 {
+                (count / total) * 100.0
+            } else {
+                0.0
+            };
+            LanguageTime {
+                language: lang,
+                total_minutes: count, // each event ~= interval of tracking
+                percentage,
+            }
+        })
+        .collect()
 }
