@@ -270,3 +270,84 @@ pub fn get_language_breakdown(state: tauri::State<'_, AppState>, date: String) -
         })
         .collect()
 }
+
+// --- Extension status ---
+
+#[derive(Debug, Clone, Serialize, Default)]
+pub struct ExtensionStatus {
+    pub chrome_connected: bool,
+    pub chrome_last_event: Option<String>,
+    pub chrome_today_events: i64,
+    pub vscode_connected: bool,
+    pub vscode_last_event: Option<String>,
+    pub vscode_today_events: i64,
+}
+
+#[tauri::command]
+pub fn check_extension_status(state: tauri::State<'_, AppState>) -> ExtensionStatus {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return ExtensionStatus::default(),
+    };
+
+    let chrome_last = conn.query_row(
+        "SELECT timestamp FROM browser_tabs ORDER BY id DESC LIMIT 1",
+        [],
+        |row| row.get::<_, String>(0),
+    ).ok();
+
+    let vscode_last = conn.query_row(
+        "SELECT timestamp FROM vscode_events ORDER BY id DESC LIMIT 1",
+        [],
+        |row| row.get::<_, String>(0),
+    ).ok();
+
+    let today_prefix = format!("{}%", chrono::Local::now().format("%Y-%m-%d"));
+
+    let chrome_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM browser_tabs WHERE timestamp LIKE ?1",
+        rusqlite::params![today_prefix],
+        |row| row.get(0),
+    ).unwrap_or(0);
+
+    let vscode_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM vscode_events WHERE timestamp LIKE ?1",
+        rusqlite::params![today_prefix],
+        |row| row.get(0),
+    ).unwrap_or(0);
+
+    // Consider "connected" if last event was within 30 seconds
+    let now = chrono::Local::now();
+    let chrome_connected = chrome_last.as_ref().map_or(false, |ts| {
+        chrono::NaiveDateTime::parse_from_str(ts, "%Y-%m-%dT%H:%M:%S%.f")
+            .or_else(|_| chrono::NaiveDateTime::parse_from_str(ts, "%Y-%m-%d %H:%M:%S"))
+            .map_or(false, |t| (now.naive_local() - t).num_seconds() < 30)
+    });
+    let vscode_connected = vscode_last.as_ref().map_or(false, |ts| {
+        chrono::NaiveDateTime::parse_from_str(ts, "%Y-%m-%dT%H:%M:%S%.f")
+            .or_else(|_| chrono::NaiveDateTime::parse_from_str(ts, "%Y-%m-%d %H:%M:%S"))
+            .map_or(false, |t| (now.naive_local() - t).num_seconds() < 30)
+    });
+
+    ExtensionStatus {
+        chrome_connected,
+        chrome_last_event: chrome_last,
+        chrome_today_events: chrome_count,
+        vscode_connected,
+        vscode_last_event: vscode_last,
+        vscode_today_events: vscode_count,
+    }
+}
+
+#[tauri::command]
+pub fn open_extensions_folder(folder: String) -> bool {
+    let target = match folder.as_str() {
+        "chrome" => r"extensions\chrome",
+        "vscode" => r"extensions\vscode",
+        _ => r"extensions",
+    };
+    std::process::Command::new("explorer.exe")
+        .arg(target)
+        .spawn()
+        .is_ok()
+}

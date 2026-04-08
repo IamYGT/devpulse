@@ -7,6 +7,9 @@ mod pomodoro;
 mod export;
 mod charts;
 mod goals;
+mod notifications;
+mod window_utils;
+mod tray_menu;
 
 use tauri::Manager;
 
@@ -103,10 +106,13 @@ pub fn run() {
             commands::get_browser_history,
             commands::get_vscode_history,
             commands::get_language_breakdown,
+            // Extension status commands
+            commands::check_extension_status,
+            commands::open_extensions_folder,
         ])
         .setup(move |app| {
-            // Setup system tray
-            setup_tray(app)?;
+            // Setup system tray (enhanced version)
+            tray_menu::setup_enhanced_tray(app)?;
 
             // Start background tracking loop
             let state_clone = tracker_state.clone();
@@ -182,80 +188,6 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running DevPulse");
-}
-
-fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    use tauri::menu::{MenuBuilder, MenuItemBuilder};
-    use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState, TrayIconEvent};
-
-    let dashboard_item = MenuItemBuilder::with_id("dashboard", "Dashboard Ac").build(app)?;
-    let pause_item = MenuItemBuilder::with_id("pause", "Takibi Duraklat").build(app)?;
-    let quit_item = MenuItemBuilder::with_id("quit", "Cikis").build(app)?;
-
-    let menu = MenuBuilder::new(app)
-        .item(&dashboard_item)
-        .separator()
-        .item(&pause_item)
-        .separator()
-        .item(&quit_item)
-        .build()?;
-
-    let pause_item_handle = pause_item.clone();
-
-    let _tray = TrayIconBuilder::new()
-        .menu(&menu)
-        .tooltip("DevPulse - Productivity Tracker")
-        .on_menu_event(move |app, event| {
-            match event.id().as_ref() {
-                "dashboard" => {
-                    if let Some(window) = app.get_webview_window("dashboard") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-                "pause" => {
-                    if let Some(state) = app.try_state::<AppState>() {
-                        let mut is_now_tracking = true;
-                        if let Ok(mut s) = state.tracker_state.lock() {
-                            s.is_tracking = !s.is_tracking;
-                            is_now_tracking = s.is_tracking;
-                        }
-                        // Update the pause menu item text to reflect new state
-                        let new_text = if is_now_tracking {
-                            "Takibi Duraklat"
-                        } else {
-                            "Takibe Devam Et"
-                        };
-                        let _ = pause_item_handle.set_text(new_text);
-                    }
-                }
-                "quit" => {
-                    app.exit(0);
-                }
-                _ => {}
-            }
-        })
-        .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                button_state: MouseButtonState::Up,
-                ..
-            } = event
-            {
-                let app = tray.app_handle();
-                if let Some(window) = app.get_webview_window("minibar") {
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-            }
-        })
-        .build(app)?;
-
-    Ok(())
 }
 
 fn send_budget_notification(

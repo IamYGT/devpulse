@@ -119,3 +119,12 @@ export interface LanguageTime {
   total_minutes: number;
   percentage: number;
 }
+
+export interface ExtensionStatus {
+  chrome_connected: boolean;
+  chrome_last_event: string | null;
+  chrome_today_events: number;
+  vscode_connected: boolean;
+  vscode_last_event: string | null;
+  vscode_today_events: number;
+}

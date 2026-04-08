@@ -8,6 +8,9 @@ import SettingsPage from "./dashboard/pages/SettingsPage";
 import PomodoroPage from "./dashboard/pages/PomodoroPage";
 import MonthlyPage from "./dashboard/pages/MonthlyPage";
 import ExportPage from "./dashboard/pages/ExportPage";
+import ExtensionsPage from "./dashboard/pages/ExtensionsPage";
+import ActivityPage from "./dashboard/pages/ActivityPage";
+import InsightsPage from "./dashboard/pages/InsightsPage";
 
 import "./app.css";
 
@@ -24,6 +27,9 @@ export default function App() {
           <Route path="pomodoro" element={<PomodoroPage />} />
           <Route path="monthly" element={<MonthlyPage />} />
           <Route path="export" element={<ExportPage />} />
+          <Route path="extensions" element={<ExtensionsPage />} />
+          <Route path="activity" element={<ActivityPage />} />
+          <Route path="insights" element={<InsightsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
