@@ -16,6 +16,8 @@ import EnforcementPage from "./dashboard/pages/EnforcementPage";
 import ProjectsPage from "./dashboard/pages/ProjectsPage";
 import MorningBriefPage from "./dashboard/pages/MorningBriefPage";
 import WelcomePage from "./dashboard/pages/WelcomePage";
+import AutomationPage from "./dashboard/pages/AutomationPage";
+import DataHealthPage from "./dashboard/pages/DataHealthPage";
 
 import "./app.css";
 
@@ -40,6 +42,8 @@ export default function App() {
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="morning" element={<MorningBriefPage />} />
           <Route path="welcome" element={<WelcomePage onComplete={() => {}} />} />
+          <Route path="automation" element={<AutomationPage />} />
+          <Route path="data-health" element={<DataHealthPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

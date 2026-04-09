@@ -14,6 +14,9 @@ mod scheduler;
 mod enforcement;
 mod intelligence;
 mod backup;
+mod performance;
+mod automation;
+mod security;
 
 use tauri::Manager;
 
@@ -158,6 +161,17 @@ pub fn run() {
             commands::get_project_last_active,
             commands::get_project_week_commits,
             commands::get_weekly_summaries,
+            // Automation commands
+            automation::commands::get_automation_rules,
+            automation::commands::create_automation_rule,
+            automation::commands::update_automation_rule,
+            automation::commands::delete_automation_rule,
+            automation::commands::get_detected_patterns,
+            automation::commands::get_auto_category_suggestions,
+            // Security commands
+            security::commands::check_data_integrity,
+            security::commands::fix_data_integrity,
+            security::commands::cleanup_old_data,
         ])
         .setup(move |app| {
             // Setup system tray (enhanced version)
