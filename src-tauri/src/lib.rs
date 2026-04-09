@@ -10,6 +10,10 @@ mod goals;
 mod notifications;
 mod window_utils;
 mod tray_menu;
+mod scheduler;
+mod enforcement;
+mod intelligence;
+mod backup;
 
 use tauri::Manager;
 
@@ -109,6 +113,38 @@ pub fn run() {
             // Extension status commands
             commands::check_extension_status,
             commands::open_extensions_folder,
+            // Scheduler commands
+            scheduler::commands::get_today_schedule,
+            scheduler::commands::create_schedule_block,
+            scheduler::commands::update_schedule_block,
+            scheduler::commands::delete_schedule_block,
+            scheduler::commands::get_schedule_for_date,
+            scheduler::commands::get_schedule_suggestions,
+            scheduler::commands::get_schedule_adherence,
+            scheduler::commands::apply_schedule_template,
+            scheduler::commands::save_schedule_template,
+            scheduler::commands::get_schedule_templates,
+            scheduler::commands::get_next_scheduled_project,
+            scheduler::commands::auto_generate_schedule,
+            // Enforcement commands
+            enforcement::commands::get_enforcement_status,
+            enforcement::commands::request_emergency_override,
+            enforcement::commands::get_overtime_report,
+            enforcement::commands::get_break_status,
+            enforcement::commands::dismiss_warning,
+            enforcement::commands::set_enforcement_level,
+            enforcement::commands::record_break_start,
+            enforcement::commands::get_override_history,
+            enforcement::commands::set_break_interval,
+            // Intelligence commands
+            intelligence::commands::get_morning_brief,
+            intelligence::commands::get_daily_report_card,
+            intelligence::commands::get_smart_suggestion,
+            intelligence::commands::get_productivity_patterns,
+            // Backup commands
+            backup::commands::backup_database,
+            backup::commands::get_database_info,
+            backup::commands::reset_database,
         ])
         .setup(move |app| {
             // Setup system tray (enhanced version)

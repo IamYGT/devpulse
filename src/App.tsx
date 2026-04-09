@@ -11,6 +11,11 @@ import ExportPage from "./dashboard/pages/ExportPage";
 import ExtensionsPage from "./dashboard/pages/ExtensionsPage";
 import ActivityPage from "./dashboard/pages/ActivityPage";
 import InsightsPage from "./dashboard/pages/InsightsPage";
+import SchedulerPage from "./dashboard/pages/SchedulerPage";
+import EnforcementPage from "./dashboard/pages/EnforcementPage";
+import ProjectsPage from "./dashboard/pages/ProjectsPage";
+import MorningBriefPage from "./dashboard/pages/MorningBriefPage";
+import WelcomePage from "./dashboard/pages/WelcomePage";
 
 import "./app.css";
 
@@ -30,6 +35,11 @@ export default function App() {
           <Route path="extensions" element={<ExtensionsPage />} />
           <Route path="activity" element={<ActivityPage />} />
           <Route path="insights" element={<InsightsPage />} />
+          <Route path="scheduler" element={<SchedulerPage />} />
+          <Route path="enforcement" element={<EnforcementPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
+          <Route path="morning" element={<MorningBriefPage />} />
+          <Route path="welcome" element={<WelcomePage onComplete={() => {}} />} />
         </Route>
       </Routes>
     </BrowserRouter>
