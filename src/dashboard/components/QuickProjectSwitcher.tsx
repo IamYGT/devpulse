@@ -50,7 +50,7 @@ export default function QuickProjectSwitcher() {
           setProjects(p);
           setSummaries(s);
         })
-        .catch(() => {});
+        .catch(() => { /* ignore */ });
 
       // Focus input after a tick
       setTimeout(() => inputRef.current?.focus(), 50);

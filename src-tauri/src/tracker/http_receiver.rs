@@ -123,7 +123,7 @@ impl HttpReceiver {
                         let status = serde_json::json!({
                             "running": true,
                             "tracking": state.is_tracking,
-                            "version": "0.3.0"
+                            "version": env!("CARGO_PKG_VERSION")
                         });
                         let mut resp =
                             tiny_http::Response::from_string(status.to_string()).with_header(

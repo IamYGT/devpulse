@@ -103,7 +103,7 @@ export default function DayEndSummary() {
               setVisible(true);
             }
           })
-          .catch(() => {});
+          .catch(() => { /* ignore */ });
       }
     };
 
@@ -123,7 +123,7 @@ export default function DayEndSummary() {
       invoke("save_setting", {
         key: `tomorrow_note_${new Date().toISOString().split("T")[0]}`,
         value: note.trim(),
-      }).catch(() => {});
+      }).catch(() => { /* ignore */ });
     }
   };
 

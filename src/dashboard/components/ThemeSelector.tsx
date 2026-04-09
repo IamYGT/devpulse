@@ -166,7 +166,7 @@ export default function ThemeSelector() {
         setActiveTheme(saved);
         applyTheme(saved);
       }
-    }).catch(() => {});
+    }).catch(() => { /* ignore */ });
   }, []);
 
   const handlePreview = (themeId: string) => {

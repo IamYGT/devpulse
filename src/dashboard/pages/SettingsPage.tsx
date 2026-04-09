@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
@@ -141,6 +142,9 @@ export default function SettingsPage() {
   const [minibarPosition, setMinibarPosition] = useState<"top" | "bottom">("top");
   const [appCategories] = useState<AppCategoryEntry[]>(DEFAULT_APP_CATEGORIES);
 
+  // App version (dynamic from Tauri)
+  const [appVersion, setAppVersion] = useState("...");
+
   // Updater state
   const [updateChecking, setUpdateChecking] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState<{ version: string; body: string } | null>(null);
@@ -191,13 +195,14 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
+    getVersion().then(setAppVersion).catch(() => setAppVersion("0.5.0"));
     invoke<string>("get_tracking_status")
       .then((status) => {
         if (status === "paused" || status === "idle" || status === "active") {
           setTrackingStatus(status as TrackingStatus);
         }
       })
-      .catch(() => {});
+      .catch(() => { /* ignore */ });
   }, []);
 
   const handlePause = async () => {
@@ -516,7 +521,7 @@ export default function SettingsPage() {
         <div style={sectionGap}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-              Mevcut surum: <strong style={{ color: "var(--accent-blue)" }}>v0.3.1</strong>
+              Mevcut surum: <strong style={{ color: "var(--accent-blue)" }}>v{appVersion}</strong>
             </span>
             <button
               className="btn btn-primary"
@@ -594,7 +599,7 @@ export default function SettingsPage() {
                 color: "var(--text-primary)",
               }}
             >
-              0.3.1
+              {appVersion}
             </span>
             <br />
             <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Teknoloji</span>{" "}

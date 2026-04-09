@@ -147,7 +147,7 @@ export default function PerformanceTips() {
   useEffect(() => {
     invoke<TrackerState>("get_current_state")
       .then(setState)
-      .catch(() => {});
+      .catch(() => { /* ignore */ });
   }, []);
 
   // Load bookmarks from settings
@@ -160,7 +160,7 @@ export default function PerformanceTips() {
           } catch {}
         }
       })
-      .catch(() => {});
+      .catch(() => { /* ignore */ });
   }, []);
 
   const saveBookmarks = useCallback(async (next: Set<string>) => {

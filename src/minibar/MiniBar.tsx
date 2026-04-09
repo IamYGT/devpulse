@@ -52,7 +52,7 @@ export default function MiniBar() {
   useEffect(() => {
     invoke<string | null>("get_setting", { key: "minibar_auto_hide" }).then((val) => {
       if (val === "true") setAutoHide(true);
-    }).catch(() => {});
+    }).catch(() => { /* ignore */ });
   }, []);
 
   const resetHideTimer = useCallback(() => {
