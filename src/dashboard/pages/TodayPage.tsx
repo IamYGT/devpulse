@@ -3,6 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { useTrackerState } from "../../hooks/useTrackerState";
 import { useInterval } from "../../hooks/useInterval";
 import type { DailySummary, TimelineEntry } from "../../types";
+import EnforcementOverlay from "../components/EnforcementOverlay";
+import BreakEnforcer from "../components/BreakEnforcer";
+import AnimatedCounter from "../components/AnimatedCounter";
+import SmartSuggestionCard from "../components/SmartSuggestionCard";
+import DailyInsights from "../components/DailyInsights";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -185,6 +190,8 @@ export default function TodayPage() {
   /* ---------------------------------------------------------------- */
   return (
     <div>
+      <EnforcementOverlay />
+      <BreakEnforcer />
       <h1 className="page-title">Bugunun Ozeti</h1>
 
       {/* ============ TOP STATS GRID ============ */}
@@ -202,7 +209,7 @@ export default function TodayPage() {
             <IconClock />
             <span className="label">Toplam Calisma</span>
           </div>
-          <div className="value blue">{formatMinutes(totalMinutes)}</div>
+          <div className="value blue"><AnimatedCounter value={totalMinutes} suffix="dk" /></div>
         </div>
 
         {/* Productive Time */}
@@ -218,7 +225,7 @@ export default function TodayPage() {
             <IconCheck />
             <span className="label">Uretken Sure</span>
           </div>
-          <div className="value green">{formatMinutes(productiveMinutes)}</div>
+          <div className="value green"><AnimatedCounter value={productiveMinutes} suffix="dk" /></div>
         </div>
 
         {/* Distracting Time */}
@@ -234,7 +241,7 @@ export default function TodayPage() {
             <IconX />
             <span className="label">Dikkat Dagitici</span>
           </div>
-          <div className="value red">{formatMinutes(distractingMinutes)}</div>
+          <div className="value red"><AnimatedCounter value={distractingMinutes} suffix="dk" /></div>
         </div>
 
         {/* Productivity % */}
@@ -251,7 +258,7 @@ export default function TodayPage() {
             <span className="label">Verimlilik</span>
           </div>
           <div className={`value ${productivityColorClass}`}>
-            %{productivity.toFixed(0)}
+            %<AnimatedCounter value={Math.round(productivity)} />
           </div>
         </div>
 
@@ -268,7 +275,7 @@ export default function TodayPage() {
             <IconGit />
             <span className="label">Commit</span>
           </div>
-          <div className="value purple">{totalCommits}</div>
+          <div className="value purple"><AnimatedCounter value={totalCommits} /></div>
         </div>
       </div>
 
@@ -396,6 +403,9 @@ export default function TodayPage() {
           </div>
         </div>
       )}
+
+      {/* ============ SMART SUGGESTIONS ============ */}
+      <SmartSuggestionCard />
 
       {/* ============ TIMELINE ============ */}
       {timeline.length > 0 && (
@@ -554,6 +564,9 @@ export default function TodayPage() {
           </div>
         </div>
       )}
+
+      {/* ============ DAILY INSIGHTS ============ */}
+      <DailyInsights summaries={summaries} timeline={timeline} state={state} />
 
       {/* ============ EMPTY STATE ============ */}
       {!hasData && (

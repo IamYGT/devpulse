@@ -142,6 +142,7 @@ pub fn run() {
             enforcement::commands::record_break_start,
             enforcement::commands::get_override_history,
             enforcement::commands::set_break_interval,
+            enforcement::commands::set_daily_max_hours,
             // Intelligence commands
             intelligence::commands::get_morning_brief,
             intelligence::commands::get_daily_report_card,
@@ -151,6 +152,8 @@ pub fn run() {
             backup::commands::backup_database,
             backup::commands::get_database_info,
             backup::commands::reset_database,
+            backup::commands::restore_database,
+            backup::commands::get_backup_list,
             // Missing frontend-called commands
             commands::open_data_folder,
             commands::save_project_note,
@@ -185,7 +188,7 @@ pub fn run() {
             std::thread::spawn(move || {
                 let mut window_tracker = WindowTracker::new(state_clone.clone(), db_clone.clone());
                 let mut git_monitor = GitMonitor::new(db_clone.clone());
-                let mut budget_manager = BudgetManager::new(db_clone);
+                let mut budget_manager = BudgetManager::new(db_clone.clone());
 
                 let mut tick_count: u64 = 0;
 
@@ -234,6 +237,131 @@ pub fn run() {
                                 }
                             }
                         }
+
+                        // Enforcement check every 10 seconds (5 ticks)
+                        if tick_count % 5 == 0 {
+                            if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                // Read current tracker state
+                                let current_state = match state_clone.lock() {
+                                    Ok(s) => s.clone(),
+                                    Err(p) => p.into_inner().clone(),
+                                };
+
+                                // Check enforcement via the app state's enforcement manager
+                                if let Some(enf_state) = app_handle.try_state::<enforcement::commands::EnforcementAppState>() {
+                                    if let Ok(mut manager) = enf_state.manager.lock() {
+                                        let alerts = manager.check(&current_state);
+                                        for alert in &alerts {
+                                            use tauri_plugin_notification::NotificationExt;
+                                            let _ = app_handle.notification()
+                                                .builder()
+                                                .title(&format!("DevPulse: {}", alert.project_name))
+                                                .body(&alert.message)
+                                                .show();
+                                        }
+                                    }
+                                }
+                            })) {
+                                eprintln!("[DevPulse] Enforcement check failed: {:?}", e);
+                            }
+                        }
+
+                        // Scheduler adherence check every 60 seconds (30 ticks)
+                        if tick_count % 30 == 0 {
+                            if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+                                if let Ok(conn) = rusqlite::Connection::open(&db_clone) {
+                                    // Check if there are schedule blocks for today
+                                    let has_schedule: bool = conn.query_row(
+                                        "SELECT COUNT(*) FROM schedule_blocks WHERE date = ?1",
+                                        rusqlite::params![today],
+                                        |row| row.get::<_, i64>(0),
+                                    ).unwrap_or(0) > 0;
+
+                                    if has_schedule {
+                                        // Get current project from tracker state
+                                        let current_project = match state_clone.lock() {
+                                            Ok(s) => s.current_project.clone(),
+                                            Err(p) => p.into_inner().current_project.clone(),
+                                        };
+
+                                        // Get the currently scheduled project
+                                        let now_time = chrono::Local::now().format("%H:%M").to_string();
+                                        let scheduled_project: Option<String> = conn.query_row(
+                                            "SELECT p.name FROM schedule_blocks sb
+                                             JOIN projects p ON p.id = sb.project_id
+                                             WHERE sb.date = ?1 AND sb.start_time <= ?2 AND sb.end_time > ?2
+                                             ORDER BY sb.start_time ASC LIMIT 1",
+                                            rusqlite::params![today, now_time],
+                                            |row| row.get(0),
+                                        ).ok();
+
+                                        if let Some(scheduled) = scheduled_project {
+                                            let current_name = current_project.as_deref().unwrap_or("(yok)");
+                                            if current_name != scheduled {
+                                                use tauri_plugin_notification::NotificationExt;
+                                                let _ = app_handle.notification()
+                                                    .builder()
+                                                    .title("DevPulse: Takvim Uyarisi")
+                                                    .body(&format!(
+                                                        "Simdi '{}' uzerinde calismaniz gerekiyor ama '{}' uzerindesiniz.",
+                                                        scheduled, current_name
+                                                    ))
+                                                    .show();
+                                            }
+                                        }
+                                    }
+                                }
+                            })) {
+                                eprintln!("[DevPulse] Scheduler adherence check failed: {:?}", e);
+                            }
+                        }
+
+                        // Automation rules check every 60 seconds (30 ticks)
+                        if tick_count % 30 == 0 {
+                            if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                                let current_state = match state_clone.lock() {
+                                    Ok(s) => s.clone(),
+                                    Err(p) => p.into_inner().clone(),
+                                };
+
+                                // Load rules from DB
+                                if let Ok(conn) = rusqlite::Connection::open(&db_clone) {
+                                    let rules = load_automation_rules(&conn);
+                                    let triggered = automation::rules::evaluate_rules(&rules, &current_state, &db_clone);
+                                    for action in &triggered {
+                                        use tauri_plugin_notification::NotificationExt;
+                                        match action.action.action_type.as_str() {
+                                            "notify" => {
+                                                let msg = serde_json::from_str::<serde_json::Value>(&action.action.value)
+                                                    .ok()
+                                                    .and_then(|v| v["message"].as_str().map(String::from))
+                                                    .unwrap_or_else(|| format!("Kural tetiklendi: {}", action.rule_name));
+                                                let _ = app_handle.notification()
+                                                    .builder()
+                                                    .title("DevPulse: Otomasyon")
+                                                    .body(&msg)
+                                                    .show();
+                                            }
+                                            _ => {
+                                                let _ = app_handle.notification()
+                                                    .builder()
+                                                    .title("DevPulse: Otomasyon")
+                                                    .body(&format!("Kural tetiklendi: {}", action.rule_name))
+                                                    .show();
+                                            }
+                                        }
+                                        // Update trigger count in DB
+                                        conn.execute(
+                                            "UPDATE automation_rules SET trigger_count = trigger_count + 1, last_triggered = ?1 WHERE id = ?2",
+                                            rusqlite::params![chrono::Local::now().to_rfc3339(), action.rule_id],
+                                        ).ok();
+                                    }
+                                }
+                            })) {
+                                eprintln!("[DevPulse] Automation rules check failed: {:?}", e);
+                            }
+                        }
                     }
 
                     tick_count = tick_count.wrapping_add(1);
@@ -251,6 +379,40 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running DevPulse");
+}
+
+/// Load automation rules from the database for the background loop
+fn load_automation_rules(conn: &rusqlite::Connection) -> Vec<automation::rules::AutomationRule> {
+    let mut stmt = match conn.prepare(
+        "SELECT id, name, enabled, condition_type, condition_value,
+                action_type, action_value, last_triggered, trigger_count
+         FROM automation_rules
+         ORDER BY id DESC",
+    ) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+
+    stmt.query_map([], |row| {
+        Ok(automation::rules::AutomationRule {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            enabled: row.get::<_, i32>(2)? != 0,
+            condition: automation::rules::RuleCondition {
+                condition_type: row.get(3)?,
+                value: row.get(4)?,
+            },
+            action: automation::rules::RuleAction {
+                action_type: row.get(5)?,
+                value: row.get(6)?,
+            },
+            last_triggered: row.get(7)?,
+            trigger_count: row.get(8)?,
+        })
+    })
+    .ok()
+    .map(|rows| rows.filter_map(|r| r.ok()).collect())
+    .unwrap_or_default()
 }
 
 fn send_budget_notification(
