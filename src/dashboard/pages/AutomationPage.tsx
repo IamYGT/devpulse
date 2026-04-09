@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import PatternCard from "../components/PatternCard";
+import TabGroup from "../../components/TabGroup";
+import EmptyState from "../../components/EmptyState";
+import StatusBadge from "../../components/StatusBadge";
+import Modal from "../../components/Modal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -301,44 +305,15 @@ export default function AutomationPage() {
       <h1 className="page-title">Otomasyon</h1>
 
       {/* Tab navigation */}
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          marginBottom: 20,
-          background: "var(--card-bg)",
-          borderRadius: "var(--radius)",
-          padding: 4,
-        }}
-      >
-        {(
-          [
-            ["rules", "Kurallar"],
-            ["patterns", "Patternler"],
-            ["categories", "Kategori Onerileri"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              borderRadius: "calc(var(--radius) - 2px)",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 600,
-              background:
-                activeTab === key ? "var(--accent-blue)" : "transparent",
-              color: activeTab === key ? "#fff" : "var(--text-secondary)",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabGroup
+        tabs={[
+          { id: "rules", label: "Kurallar", badge: rules.length },
+          { id: "patterns", label: "Patternler", badge: patterns.length },
+          { id: "categories", label: "Kategori Onerileri", badge: suggestions.length },
+        ]}
+        activeTab={activeTab}
+        onChange={(id) => setActiveTab(id as "rules" | "patterns" | "categories")}
+      />
 
       {/* Rules Tab */}
       {activeTab === "rules" && (
@@ -380,16 +355,13 @@ export default function AutomationPage() {
             </button>
           </div>
 
-          {/* Create form */}
-          {showCreate && (
-            <div
-              className="card"
-              style={{
-                padding: 20,
-                marginBottom: 16,
-                borderLeft: "3px solid var(--accent-blue)",
-              }}
-            >
+          {/* Create form (Modal) */}
+          <Modal
+            isOpen={showCreate}
+            onClose={() => setShowCreate(false)}
+            title="Yeni Otomasyon Kurali"
+            size="md"
+          >
               <div style={{ marginBottom: 12 }}>
                 <label
                   style={{
@@ -540,32 +512,16 @@ export default function AutomationPage() {
                   Iptal
                 </button>
               </div>
-            </div>
-          )}
+          </Modal>
 
           {/* Rule list */}
           {rules.length === 0 && !showCreate && (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--text-muted)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <h3>Henuz otomasyon kurali yok</h3>
-              <p>
-                "Yeni Kural" butonuyla ilk kuralini olustur. Kurallar
-                calisma durumuna gore otomatik aksiyonlar tetikler.
-              </p>
-            </div>
+            <EmptyState
+              icon="chart"
+              title="Henuz otomasyon kurali yok"
+              description="'Yeni Kural' butonuyla ilk kuralini olustur. Kurallar calisma durumuna gore otomatik aksiyonlar tetikler."
+              action={{ label: "Yeni Kural Olustur", onClick: () => setShowCreate(true) }}
+            />
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -642,6 +598,15 @@ export default function AutomationPage() {
                   </div>
                 </div>
 
+                {/* Status badge */}
+                <StatusBadge
+                  variant={rule.enabled ? "success" : "neutral"}
+                  label={rule.enabled ? "Aktif" : "Pasif"}
+                  size="sm"
+                  dot
+                  pulse={rule.enabled}
+                />
+
                 {/* Stats */}
                 {rule.trigger_count > 0 && (
                   <span
@@ -697,27 +662,11 @@ export default function AutomationPage() {
       {activeTab === "patterns" && (
         <div>
           {patterns.length === 0 && (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--text-muted)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              </div>
-              <h3>Henuz pattern tespit edilmedi</h3>
-              <p>
-                Birkaç gun calistiktan sonra calisma patternlerin
-                otomatik olarak tespit edilecek.
-              </p>
-            </div>
+            <EmptyState
+              icon="chart"
+              title="Henuz pattern tespit edilmedi"
+              description="Birkac gun calistiktan sonra calisma patternlerin otomatik olarak tespit edilecek."
+            />
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -736,28 +685,11 @@ export default function AutomationPage() {
       {activeTab === "categories" && (
         <div>
           {suggestions.length === 0 && (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--text-muted)"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              </div>
-              <h3>Tum uygulamalar kategorize edilmis</h3>
-              <p>
-                Yeni bir uygulama kullanmaya basladiginda burada
-                kategori onerileri goreceksin.
-              </p>
-            </div>
+            <EmptyState
+              icon="folder"
+              title="Tum uygulamalar kategorize edilmis"
+              description="Yeni bir uygulama kullanmaya basladiginda burada kategori onerileri goreceksin."
+            />
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

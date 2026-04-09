@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import SearchInput from "../../components/SearchInput";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import EmptyState from "../../components/EmptyState";
 
 interface TimelineEntry {
   timestamp: string;
@@ -158,8 +161,8 @@ export default function ActivityLogTable() {
     return (
       <div className="card">
         <div className="card-title">Aktivite Kayitlari</div>
-        <div style={{ color: "var(--text-muted)", fontSize: 13, padding: "20px 0" }}>
-          Yukleniyor...
+        <div style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}>
+          <LoadingSpinner size="md" label="Yukleniyor..." />
         </div>
       </div>
     );
@@ -190,13 +193,13 @@ export default function ActivityLogTable() {
           <option value="neutral">Notr</option>
         </select>
 
-        <input
-          type="text"
-          placeholder="Pencere basligi veya uygulama ara..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: 300 }}
-        />
+        <div style={{ maxWidth: 300, flex: 1 }}>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Pencere basligi veya uygulama ara..."
+          />
+        </div>
 
         <span
           style={{
@@ -237,15 +240,12 @@ export default function ActivityLogTable() {
           <tbody>
             {paged.length === 0 ? (
               <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    textAlign: "center",
-                    color: "var(--text-muted)",
-                    padding: "24px 0",
-                  }}
-                >
-                  Kayit bulunamadi
+                <td colSpan={6}>
+                  <EmptyState
+                    icon="search"
+                    title="Kayit bulunamadi"
+                    description="Filtreleri degistirerek tekrar deneyin."
+                  />
                 </td>
               </tr>
             ) : (

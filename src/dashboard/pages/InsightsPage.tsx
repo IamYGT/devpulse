@@ -9,6 +9,8 @@ import ProductivityGauge from "../components/ProductivityGauge";
 import FocusScore from "../components/FocusScore";
 import WeeklyComparison from "../components/WeeklyComparison";
 import ProjectTimeline from "../components/ProjectTimeline";
+import HabitTracker from "../components/HabitTracker";
+import ReportCard from "../components/ReportCard";
 
 /* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
@@ -75,6 +77,9 @@ export default function InsightsPage() {
             state={state}
           />
 
+          {/* Report Card - daily performance report */}
+          <ReportCard />
+
           {/* Middle: Gauge + Focus Score side by side */}
           <div
             style={{
@@ -102,6 +107,9 @@ export default function InsightsPage() {
 
           {/* Weekly Comparison */}
           <WeeklyComparison />
+
+          {/* Habit Tracker */}
+          <HabitTracker />
 
           {/* Project Timeline */}
           <ProjectTimeline

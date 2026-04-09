@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import PageTransition from "../../components/PageTransition";
+import ProgressRing from "../../components/ProgressRing";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -183,6 +185,7 @@ export default function MorningBriefPage() {
   }
 
   return (
+    <PageTransition>
     <div style={{ padding: "32px 24px", maxWidth: 800, margin: "0 auto" }}>
       {/* Greeting Header */}
       <div
@@ -261,17 +264,9 @@ export default function MorningBriefPage() {
             </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Saat</div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontSize: 32,
-                fontWeight: 700,
-                color: gradeColor(brief.yesterday_summary.productivity),
-              }}
-            >
-              %{brief.yesterday_summary.productivity.toFixed(0)}
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Verimlilik</div>
+          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <ProgressRing value={brief.yesterday_summary.productivity} size={60} />
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>Verimlilik</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div
@@ -286,17 +281,9 @@ export default function MorningBriefPage() {
             </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)" }}>En Cok Calisan</div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                fontSize: 32,
-                fontWeight: 700,
-                color: gradeColor(brief.yesterday_summary.schedule_adherence),
-              }}
-            >
-              %{brief.yesterday_summary.schedule_adherence.toFixed(0)}
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Plan Uyumu</div>
+          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <ProgressRing value={brief.yesterday_summary.schedule_adherence} size={60} />
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>Plan Uyumu</div>
           </div>
         </div>
       </div>
@@ -491,5 +478,6 @@ export default function MorningBriefPage() {
         </button>
       </div>
     </div>
+    </PageTransition>
   );
 }

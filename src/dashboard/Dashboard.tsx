@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import EnforcementOverlay from "./components/EnforcementOverlay";
 import BreakEnforcer from "./components/BreakEnforcer";
 import DayEndSummary from "./components/DayEndSummary";
+import SkipLink from "../components/SkipLink";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+      <SkipLink />
       <EnforcementOverlay />
       <BreakEnforcer />
       <Sidebar />

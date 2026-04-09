@@ -8,6 +8,14 @@ import BreakEnforcer from "../components/BreakEnforcer";
 import AnimatedCounter from "../components/AnimatedCounter";
 import SmartSuggestionCard from "../components/SmartSuggestionCard";
 import DailyInsights from "../components/DailyInsights";
+import QuickStats from "../components/QuickStats";
+import TimeDistributionBar from "../components/TimeDistributionBar";
+import CategoryDonutChart from "../components/CategoryDonutChart";
+import TopAppsList from "../components/TopAppsList";
+import WorkSessionCard from "../components/WorkSessionCard";
+import DailyGoalCards from "../components/DailyGoalCards";
+import RecentActivityFeed from "../components/RecentActivityFeed";
+import GanttChart from "../components/GanttChart";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -185,6 +193,9 @@ export default function TodayPage() {
 
   const hasData = summaries.length > 0 || timeline.length > 0;
 
+  const idleMinutes = summaries.reduce((a, s) => a + s.idle_minutes, 0);
+  const neutralMinutes = totalMinutes - productiveMinutes - distractingMinutes - idleMinutes;
+
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
@@ -192,6 +203,10 @@ export default function TodayPage() {
     <div>
       <EnforcementOverlay />
       <BreakEnforcer />
+
+      {/* ============ QUICK STATS (compact badges) ============ */}
+      <QuickStats />
+
       <h1 className="page-title">Bugunun Ozeti</h1>
 
       {/* ============ TOP STATS GRID ============ */}
@@ -277,6 +292,17 @@ export default function TodayPage() {
           </div>
           <div className="value purple"><AnimatedCounter value={totalCommits} /></div>
         </div>
+      </div>
+
+      {/* ============ TIME DISTRIBUTION BAR ============ */}
+      <div className="card">
+        <div className="card-title">Zaman Dagilimi</div>
+        <TimeDistributionBar
+          productive={productiveMinutes}
+          distracting={distractingMinutes}
+          idle={idleMinutes}
+          neutral={neutralMinutes}
+        />
       </div>
 
       {/* ============ CURRENT ACTIVITY ============ */}
@@ -404,6 +430,9 @@ export default function TodayPage() {
         </div>
       )}
 
+      {/* ============ WORK SESSION CARD ============ */}
+      <WorkSessionCard />
+
       {/* ============ SMART SUGGESTIONS ============ */}
       <SmartSuggestionCard />
 
@@ -514,6 +543,15 @@ export default function TodayPage() {
         </div>
       )}
 
+      {/* ============ GANTT CHART ============ */}
+      <GanttChart />
+
+      {/* ============ CATEGORY DONUT + TOP APPS (two-column) ============ */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <CategoryDonutChart />
+        <TopAppsList />
+      </div>
+
       {/* ============ PROJECT BREAKDOWN ============ */}
       {sortedSummaries.length > 0 && (
         <div className="card">
@@ -565,8 +603,14 @@ export default function TodayPage() {
         </div>
       )}
 
+      {/* ============ DAILY GOAL CARDS ============ */}
+      <DailyGoalCards />
+
       {/* ============ DAILY INSIGHTS ============ */}
       <DailyInsights summaries={summaries} timeline={timeline} state={state} />
+
+      {/* ============ RECENT ACTIVITY FEED ============ */}
+      <RecentActivityFeed />
 
       {/* ============ EMPTY STATE ============ */}
       {!hasData && (

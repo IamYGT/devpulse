@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useTrackerState } from "../hooks/useTrackerState";
+import NotificationBell from "./components/NotificationBell";
 
 function formatMinutes(m: number): string {
   const h = Math.floor(m / 60);
@@ -192,11 +193,14 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-status">
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
-          <span className={`status-dot ${statusClass}`} />
-          <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500 }}>
-            {statusText}
-          </span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span className={`status-dot ${statusClass}`} />
+            <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500 }}>
+              {statusText}
+            </span>
+          </div>
+          <NotificationBell />
         </div>
 
         {state?.current_project && (

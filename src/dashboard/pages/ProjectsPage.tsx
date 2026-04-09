@@ -14,6 +14,7 @@ import NeglectedProjectsBanner, {
 } from "../components/NeglectedProjectsBanner";
 import ProjectJournal from "../components/ProjectJournal";
 import CrossProjectComparison from "../components/CrossProjectComparison";
+import ProjectComparisonChart from "../components/ProjectComparisonChart";
 import QuickProjectSwitcher from "../components/QuickProjectSwitcher";
 
 /* ------------------------------------------------------------------ */
@@ -387,6 +388,12 @@ export default function ProjectsPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ============ PROJECT COMPARISON CHART ============ */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-title">Proje Karsilastirmasi</div>
+        <ProjectComparisonChart />
       </div>
 
       {/* ============ PROJECT JOURNAL (selected project) ============ */}

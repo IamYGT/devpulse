@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import Modal from "../../components/Modal";
 
 function getDefaultDateRange(): { from: string; to: string } {
   const now = new Date();
@@ -23,6 +25,7 @@ export default function ExportPage() {
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
   const clearMessages = () => {
     setMessage(null);
@@ -125,21 +128,22 @@ export default function ExportPage() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <button
             className="btn btn-primary"
-            onClick={handleExportCSV}
+            onClick={() => setConfirmAction(() => handleExportCSV)}
             disabled={loading}
           >
             CSV Olarak Indir
           </button>
           <button
             className="btn btn-primary"
-            onClick={handleExportJSON}
+            onClick={() => setConfirmAction(() => handleExportJSON)}
             disabled={loading}
           >
             JSON Olarak Indir
           </button>
+          {loading && <LoadingSpinner size="sm" label="Aktariliyor..." />}
         </div>
       </div>
 
@@ -205,6 +209,7 @@ export default function ExportPage() {
           >
             Rapor Olustur
           </button>
+          {loading && <LoadingSpinner size="sm" />}
         </div>
       </div>
 
@@ -232,6 +237,37 @@ export default function ExportPage() {
           </pre>
         </div>
       )}
+
+      {/* Export Confirmation Modal */}
+      <Modal
+        isOpen={confirmAction !== null}
+        onClose={() => setConfirmAction(null)}
+        title="Aktarimi Onayla"
+        size="sm"
+      >
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
+          {dateFrom} - {dateTo} tarih araligindaki veriler aktarilacak. Devam etmek istiyor musunuz?
+        </p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button
+            className="btn"
+            onClick={() => setConfirmAction(null)}
+            style={{ padding: "8px 16px", fontSize: 13 }}
+          >
+            Iptal
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              if (confirmAction) confirmAction();
+              setConfirmAction(null);
+            }}
+            style={{ padding: "8px 16px", fontSize: 13 }}
+          >
+            Aktar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

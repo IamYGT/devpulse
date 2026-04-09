@@ -4,6 +4,7 @@ import type { Project } from "../../types";
 import ScheduleTimeline from "../components/ScheduleTimeline";
 import type { ScheduleBlock } from "../components/ScheduleTimeline";
 import NextUpCard from "../components/NextUpCard";
+import BurndownChart from "../components/BurndownChart";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -878,6 +879,27 @@ export default function SchedulerPage() {
       >
         {/* Next Up */}
         <NextUpCard onRefresh={fetchSchedule} />
+
+        {/* Burndown Chart - show if there's an active block with a project */}
+        {(() => {
+          const activeBlock = blocks.find((b) => b.status === "active");
+          if (!activeBlock) return null;
+          const project = projects.find((p) => p.id === activeBlock.project_id);
+          if (!project || !project.daily_budget_minutes) return null;
+          return (
+            <div style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              padding: 16,
+            }}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+                Butce Yakim Grafigi
+              </div>
+              <BurndownChart projectId={activeBlock.project_id} budgetMinutes={project.daily_budget_minutes} />
+            </div>
+          );
+        })()}
 
         {/* Day summary */}
         <div style={{

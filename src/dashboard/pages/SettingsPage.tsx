@@ -3,6 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import ThemeSelector from "../components/ThemeSelector";
+import DataManager from "../components/DataManager";
+import KeyboardShortcutsHelp from "../components/KeyboardShortcutsHelp";
+import PerformanceTips from "../components/PerformanceTips";
+import WidgetGrid from "../components/WidgetGrid";
 
 type TrackingStatus = "active" | "paused" | "idle";
 type AppCategory = "productive" | "distracting" | "neutral";
@@ -141,6 +146,7 @@ export default function SettingsPage() {
   const [autostartError, setAutostartError] = useState(false);
   const [minibarPosition, setMinibarPosition] = useState<"top" | "bottom">("top");
   const [appCategories] = useState<AppCategoryEntry[]>(DEFAULT_APP_CATEGORIES);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // App version (dynamic from Tauri)
   const [appVersion, setAppVersion] = useState("...");
@@ -272,7 +278,28 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="page-title">Ayarlar</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h1 className="page-title" style={{ margin: 0 }}>Ayarlar</h1>
+        <button
+          className="btn"
+          onClick={() => setShowShortcuts(true)}
+          style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <line x1="6" y1="8" x2="6.01" y2="8" />
+            <line x1="10" y1="8" x2="10.01" y2="8" />
+            <line x1="14" y1="8" x2="14.01" y2="8" />
+            <line x1="18" y1="8" x2="18.01" y2="8" />
+            <line x1="6" y1="12" x2="6.01" y2="12" />
+            <line x1="18" y1="12" x2="18.01" y2="12" />
+            <line x1="8" y1="16" x2="16" y2="16" />
+          </svg>
+          Klavye Kisayollari
+        </button>
+      </div>
+
+      <KeyboardShortcutsHelp isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
       {/* ── Tracking Control ── */}
       <div className="card">
@@ -307,6 +334,11 @@ export default function SettingsPage() {
             kaldigi yerden devam eder.
           </p>
         </div>
+      </div>
+
+      {/* ── Theme Selector ── */}
+      <div className="card">
+        <ThemeSelector />
       </div>
 
       {/* ── Idle Threshold ── */}
@@ -413,6 +445,11 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* ── Dashboard Widget Settings ── */}
+      <div className="card">
+        <WidgetGrid />
+      </div>
+
       {/* ── Autostart ── */}
       <div className="card">
         <div className="card-title">Otomatik Baslatma</div>
@@ -513,6 +550,11 @@ export default function SettingsPage() {
             Aktif uygulamayi, gecen sureyi ve verimlilik durumunu anlık olarak gosterir.
           </p>
         </div>
+      </div>
+
+      {/* ── Data Manager ── */}
+      <div className="card">
+        <DataManager />
       </div>
 
       {/* ── Update ── */}
@@ -631,6 +673,12 @@ export default function SettingsPage() {
             Veri Klasorunu Ac
           </button>
         </div>
+      </div>
+
+      {/* ── Performance Tips ── */}
+      <div className="card">
+        <div className="card-title">Verimlilik Ipuclari</div>
+        <PerformanceTips />
       </div>
     </div>
   );

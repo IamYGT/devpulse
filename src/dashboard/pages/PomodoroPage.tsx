@@ -2,6 +2,8 @@ import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { usePomodoroState } from "../../hooks/usePomodoroState";
 import { PomodoroTimer } from "../components/PomodoroTimer";
+import PageTransition from "../../components/PageTransition";
+import StatusBadge from "../../components/StatusBadge";
 
 /* ------------------------------------------------------------------ */
 /*  Config Section                                                     */
@@ -213,9 +215,21 @@ export default function PomodoroPage() {
     );
   }
 
+  const isBreak = state.mode === "short_break" || state.mode === "long_break";
+  const sessionStatusVariant = state.is_running
+    ? isBreak ? "idle" as const : "productive" as const
+    : "neutral" as const;
+  const sessionStatusLabel = state.is_running
+    ? isBreak ? "Mola" : "Calisma"
+    : "Durduruldu";
+
   return (
+    <PageTransition>
     <div className="content">
-      <h2 className="page-title">Pomodoro Zamanlayici</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+        <h2 className="page-title" style={{ margin: 0 }}>Pomodoro Zamanlayici</h2>
+        <StatusBadge variant={sessionStatusVariant} label={sessionStatusLabel} pulse={state.is_running} />
+      </div>
 
       {/* Timer */}
       <div className="card" style={{ display: "flex", justifyContent: "center", padding: "40px 20px" }}>
@@ -293,5 +307,6 @@ export default function PomodoroPage() {
       {/* Tips */}
       <TipsSection />
     </div>
+    </PageTransition>
   );
 }
