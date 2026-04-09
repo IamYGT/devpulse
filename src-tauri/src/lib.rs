@@ -72,6 +72,9 @@ pub fn run() {
         .manage(pomodoro::commands::PomodoroAppState {
             timer: pomodoro::timer::PomodoroTimer::new(),
         })
+        .manage(enforcement::commands::EnforcementAppState {
+            manager: std::sync::Mutex::new(enforcement::manager::EnforcementManager::new(db_path.clone())),
+        })
         .invoke_handler(tauri::generate_handler![
             // Core commands
             commands::get_current_state,
@@ -145,6 +148,16 @@ pub fn run() {
             backup::commands::backup_database,
             backup::commands::get_database_info,
             backup::commands::reset_database,
+            // Missing frontend-called commands
+            commands::open_data_folder,
+            commands::save_project_note,
+            commands::get_project_notes,
+            commands::set_active_project,
+            commands::set_idle_threshold,
+            commands::set_autostart,
+            commands::get_project_last_active,
+            commands::get_project_week_commits,
+            commands::get_weekly_summaries,
         ])
         .setup(move |app| {
             // Setup system tray (enhanced version)

@@ -351,3 +351,166 @@ pub fn open_extensions_folder(folder: String) -> bool {
         .spawn()
         .is_ok()
 }
+
+// --- Missing commands that frontend calls ---
+
+#[tauri::command]
+pub fn open_data_folder(state: tauri::State<'_, AppState>) -> bool {
+    let db_dir = std::path::Path::new(&state.db_path)
+        .parent()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| ".".to_string());
+    std::process::Command::new("explorer.exe")
+        .arg(&db_dir)
+        .spawn()
+        .is_ok()
+}
+
+#[tauri::command]
+pub fn save_project_note(state: tauri::State<'_, AppState>, project_id: i64, text: String) -> bool {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS project_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            text TEXT NOT NULL,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime'))
+        )"
+    ).ok();
+    conn.execute(
+        "INSERT INTO project_notes (project_id, text) VALUES (?1, ?2)",
+        rusqlite::params![project_id, text],
+    ).is_ok()
+}
+
+#[tauri::command]
+pub fn get_project_notes(state: tauri::State<'_, AppState>, project_id: i64) -> Vec<ProjectNote> {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+    conn.execute_batch(
+        "CREATE TABLE IF NOT EXISTS project_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            text TEXT NOT NULL,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime'))
+        )"
+    ).ok();
+    let result: Vec<ProjectNote> = (|| {
+        let mut stmt = conn.prepare(
+            "SELECT id, project_id, text, timestamp FROM project_notes WHERE project_id = ?1 ORDER BY id DESC LIMIT 20"
+        ).ok()?;
+        let rows = stmt.query_map(rusqlite::params![project_id], |row| {
+            Ok(ProjectNote {
+                id: row.get(0)?,
+                project_id: row.get(1)?,
+                text: row.get(2)?,
+                timestamp: row.get(3)?,
+            })
+        }).ok()?;
+        Some(rows.filter_map(|r| r.ok()).collect())
+    })().unwrap_or_default();
+    result
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ProjectNote {
+    pub id: i64,
+    pub project_id: i64,
+    pub text: String,
+    pub timestamp: String,
+}
+
+#[tauri::command]
+pub fn set_active_project(state: tauri::State<'_, AppState>, project_id: i64) -> bool {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    conn.execute(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES ('active_project_id', ?1)",
+        rusqlite::params![project_id.to_string()],
+    ).is_ok()
+}
+
+#[tauri::command]
+pub fn set_idle_threshold(state: tauri::State<'_, AppState>, seconds: i64) -> bool {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    conn.execute(
+        "INSERT OR REPLACE INTO settings (key, value) VALUES ('idle_threshold', ?1)",
+        rusqlite::params![seconds.to_string()],
+    ).is_ok()
+}
+
+#[tauri::command]
+pub fn set_autostart(_state: tauri::State<'_, AppState>, _enabled: bool) -> bool {
+    // Autostart is handled by tauri-plugin-autostart
+    // This command exists for frontend compatibility
+    true
+}
+
+#[tauri::command]
+pub fn get_project_last_active(state: tauri::State<'_, AppState>, project_id: i64) -> Option<String> {
+    let conn = rusqlite::Connection::open(&state.db_path).ok()?;
+    conn.query_row(
+        "SELECT timestamp FROM activity_logs WHERE project_id = ?1 ORDER BY id DESC LIMIT 1",
+        rusqlite::params![project_id],
+        |row| row.get(0),
+    ).ok()
+}
+
+#[tauri::command]
+pub fn get_project_week_commits(state: tauri::State<'_, AppState>, project_id: i64) -> i64 {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return 0,
+    };
+    conn.query_row(
+        "SELECT COUNT(*) FROM git_events WHERE project_id = ?1 AND timestamp >= datetime('now', '-7 days', 'localtime')",
+        rusqlite::params![project_id],
+        |row| row.get(0),
+    ).unwrap_or(0)
+}
+
+#[tauri::command]
+pub fn get_weekly_summaries(state: tauri::State<'_, AppState>) -> Vec<WeeklySummaryItem> {
+    let conn = match rusqlite::Connection::open(&state.db_path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+    let result: Vec<WeeklySummaryItem> = (|| {
+        let mut stmt = conn.prepare(
+            "SELECT p.name,
+                    COALESCE(SUM(CASE WHEN a.timestamp >= datetime('now', '-7 days', 'localtime') THEN a.duration_seconds ELSE 0 END), 0) / 60 as this_week,
+                    COALESCE(SUM(CASE WHEN a.timestamp >= datetime('now', '-14 days', 'localtime') AND a.timestamp < datetime('now', '-7 days', 'localtime') THEN a.duration_seconds ELSE 0 END), 0) / 60 as last_week
+             FROM projects p
+             LEFT JOIN activity_logs a ON a.project_id = p.id
+             GROUP BY p.id, p.name
+             HAVING this_week > 0 OR last_week > 0
+             ORDER BY this_week DESC"
+        ).ok()?;
+        let rows = stmt.query_map([], |row| {
+            Ok(WeeklySummaryItem {
+                project_name: row.get(0)?,
+                this_week_minutes: row.get(1)?,
+                last_week_minutes: row.get(2)?,
+            })
+        }).ok()?;
+        Some(rows.filter_map(|r| r.ok()).collect())
+    })().unwrap_or_default();
+    result
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct WeeklySummaryItem {
+    pub project_name: String,
+    pub this_week_minutes: i64,
+    pub last_week_minutes: i64,
+}

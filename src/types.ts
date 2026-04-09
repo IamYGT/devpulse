@@ -128,3 +128,103 @@ export interface ExtensionStatus {
   vscode_last_event: string | null;
   vscode_today_events: number;
 }
+
+export interface ProjectNote {
+  id: number;
+  project_id: number;
+  text: string;
+  timestamp: string;
+}
+
+export interface ScheduleBlock {
+  id: number;
+  date: string;
+  project_id: number;
+  project_name: string;
+  start_time: string;
+  end_time: string;
+  priority: string;
+  status: string;
+  actual_minutes: number;
+}
+
+export interface WeeklySummaryItem {
+  project_name: string;
+  this_week_minutes: number;
+  last_week_minutes: number;
+}
+
+export interface EnforcementStatus {
+  active_warnings: ActiveWarning[];
+  enforcement_level: string;
+  break_due: boolean;
+  minutes_since_break: number;
+  daily_overtime_minutes: number;
+}
+
+export interface ActiveWarning {
+  project_name: string;
+  project_id: number;
+  level: string;
+  message: string;
+  percentage: number;
+  suggested_project: string | null;
+}
+
+export interface MorningBrief {
+  greeting: string;
+  date: string;
+  planned_projects: PlannedProject[];
+  yesterday_summary: YesterdaySummary;
+  streak_days: number;
+  tip_of_the_day: string;
+}
+
+export interface PlannedProject {
+  name: string;
+  planned_minutes: number;
+  priority: string;
+  last_active: string | null;
+  pending_commits: boolean;
+}
+
+export interface YesterdaySummary {
+  total_hours: number;
+  productivity: number;
+  top_project: string;
+  schedule_adherence: number;
+}
+
+export interface DailyReportCard {
+  date: string;
+  grade: string;
+  score: number;
+  metrics: ReportMetrics;
+  highlights: string[];
+  improvements: string[];
+}
+
+export interface ReportMetrics {
+  productivity_score: number;
+  schedule_adherence: number;
+  focus_score: number;
+  commit_frequency: number;
+  break_compliance: number;
+  overtime_penalty: number;
+}
+
+export interface SmartSuggestion {
+  action: string;
+  message: string;
+  project_name: string | null;
+  urgency: string;
+}
+
+export interface DatabaseInfo {
+  path: string;
+  size_bytes: number;
+  last_modified: string;
+  activity_count: number;
+  project_count: number;
+  git_event_count: number;
+}

@@ -94,6 +94,47 @@ pub fn initialize_database(conn: &Connection) -> rusqlite::Result<()> {
             duration_seconds INTEGER DEFAULT 0
         );
         CREATE INDEX IF NOT EXISTS idx_vscode_events_timestamp ON vscode_events(timestamp);
+
+        CREATE TABLE IF NOT EXISTS schedule_blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            project_id INTEGER REFERENCES projects(id),
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            priority TEXT DEFAULT 'P1',
+            status TEXT DEFAULT 'planned',
+            actual_minutes INTEGER DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_schedule_blocks_date ON schedule_blocks(date);
+
+        CREATE TABLE IF NOT EXISTS schedule_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            blocks_json TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS enforcement_overrides (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER,
+            reason TEXT NOT NULL,
+            extra_minutes INTEGER DEFAULT 30,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime'))
+        );
+
+        CREATE TABLE IF NOT EXISTS enforcement_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER,
+            level TEXT NOT NULL,
+            message TEXT,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime'))
+        );
+
+        CREATE TABLE IF NOT EXISTS project_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            text TEXT NOT NULL,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime'))
+        );
         ",
     )?;
 
