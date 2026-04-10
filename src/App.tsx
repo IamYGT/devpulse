@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./dashboard/Dashboard";
 import TodayPage from "./dashboard/pages/TodayPage";
 import WeekPage from "./dashboard/pages/WeekPage";
@@ -23,7 +23,7 @@ import "./app.css";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Dashboard />}>
           <Route index element={<TodayPage />} />
@@ -46,6 +46,6 @@ export default function App() {
           <Route path="data-health" element={<DataHealthPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

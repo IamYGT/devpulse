@@ -1,6 +1,6 @@
 [package]
 name = "devpulse"
-version = "0.8.0"
+version = "0.8.1"
 description = "YGT Labs AI DevPulse - Developer Productivity Tracker"
 authors = ["Ercan"]
 edition = "2021"
