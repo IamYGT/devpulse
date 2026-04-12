@@ -91,7 +91,7 @@ export default function EnforcementOverlay() {
     }
   };
 
-  if (!status || status.active_warnings.length === 0) {
+  if (!status || !status.active_warnings || status.active_warnings.length === 0) {
     return null;
   }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Project } from "../../types";
-import { useToast } from "../../components/Toast";
+// Toast removed for stability - using simple state instead
 import TagPicker from "./TagPicker";
 
 /* ------------------------------------------------------------------ */
@@ -37,7 +37,7 @@ export default function QuickCapture() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [saving, setSaving] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
-  const { showToast } = useToast();
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   /* ── Keyboard shortcut: Ctrl+Shift+N ──────────────────────── */
   useEffect(() => {
@@ -88,11 +88,11 @@ export default function QuickCapture() {
         projectId,
         tagIds,
       });
-      showToast("success", "Not kaydedildi");
+      setSaveMsg("Not kaydedildi"); setTimeout(() => setSaveMsg(null), 2000);
       resetAndClose();
     } catch (err) {
       console.error("Not kaydedilemedi:", err);
-      showToast("error", "Not kaydedilemedi");
+      setSaveMsg("Hata: Not kaydedilemedi"); setTimeout(() => setSaveMsg(null), 3000);
     } finally {
       setSaving(false);
     }
@@ -252,6 +252,11 @@ export default function QuickCapture() {
 
   return (
     <>
+      {saveMsg && (
+        <div style={{ position: "fixed", bottom: 80, right: 20, padding: "8px 16px", background: "var(--accent-green)", color: "#fff", borderRadius: 8, fontSize: 13, zIndex: 10001 }}>
+          {saveMsg}
+        </div>
+      )}
       <style>{`
         @keyframes qc-fade-in {
           from { opacity: 0; }
