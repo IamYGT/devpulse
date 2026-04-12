@@ -24,6 +24,7 @@ const MorningBriefPage = lazy(() => import("./dashboard/pages/MorningBriefPage")
 const WelcomePage = lazy(() => import("./dashboard/pages/WelcomePage"));
 const AutomationPage = lazy(() => import("./dashboard/pages/AutomationPage"));
 const DataHealthPage = lazy(() => import("./dashboard/pages/DataHealthPage"));
+const NotesPage = lazy(() => import("./dashboard/pages/NotesPage"));
 
 function PageLoader() {
   return (
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="welcome" element={<SafePage><WelcomePage onComplete={() => {}} /></SafePage>} />
           <Route path="automation" element={<SafePage><AutomationPage /></SafePage>} />
           <Route path="data-health" element={<SafePage><DataHealthPage /></SafePage>} />
+          <Route path="notes" element={<SafePage><NotesPage /></SafePage>} />
         </Route>
       </Routes>
     </HashRouter>

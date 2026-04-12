@@ -17,6 +17,7 @@ mod backup;
 mod performance;
 mod automation;
 mod security;
+mod notes;
 
 use tauri::Manager;
 
@@ -175,6 +176,25 @@ pub fn run() {
             security::commands::check_data_integrity,
             security::commands::fix_data_integrity,
             security::commands::cleanup_old_data,
+            // Notes commands
+            notes::commands::create_note,
+            notes::commands::update_note,
+            notes::commands::delete_note,
+            notes::commands::get_notes,
+            notes::commands::get_note,
+            notes::commands::archive_note,
+            notes::commands::pin_note,
+            notes::commands::search_notes,
+            notes::commands::create_tag,
+            notes::commands::get_tags,
+            notes::commands::tag_note,
+            notes::commands::untag_note,
+            notes::commands::create_todo,
+            notes::commands::update_todo,
+            notes::commands::delete_todo,
+            notes::commands::get_todos,
+            notes::commands::reorder_todos,
+            notes::commands::get_today_journal,
         ])
         .setup(move |app| {
             // Setup system tray (enhanced version)
