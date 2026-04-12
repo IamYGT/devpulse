@@ -340,14 +340,37 @@ pub fn check_extension_status(state: tauri::State<'_, AppState>) -> ExtensionSta
 }
 
 #[tauri::command]
-pub fn open_extensions_folder(folder: String) -> bool {
-    let target = match folder.as_str() {
-        "chrome" => r"extensions\chrome",
-        "vscode" => r"extensions\vscode",
-        _ => r"extensions",
-    };
+pub fn open_extensions_folder(state: tauri::State<'_, AppState>, folder: String) -> bool {
+    // Get the app install directory from the executable path
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+
+    // Try multiple locations: next to exe, project source dir, appdata
+    let candidates = vec![
+        exe_dir.join("extensions").join(&folder),
+        exe_dir.parent().unwrap_or(&exe_dir).join("extensions").join(&folder),
+        // Source project location
+        std::path::PathBuf::from(r"C:\Users\ETETB\OneDrive\Desktop\ygt\devpulse\extensions").join(&folder),
+    ];
+
+    for path in &candidates {
+        if path.exists() {
+            return std::process::Command::new("explorer.exe")
+                .arg(path.to_string_lossy().to_string())
+                .spawn()
+                .is_ok();
+        }
+    }
+
+    // Fallback: open the DB directory
+    let db_dir = std::path::Path::new(&state.db_path)
+        .parent()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| ".".to_string());
     std::process::Command::new("explorer.exe")
-        .arg(target)
+        .arg(&db_dir)
         .spawn()
         .is_ok()
 }

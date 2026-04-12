@@ -40,7 +40,15 @@ pub fn setup_enhanced_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::E
     let project_handle = project_item.clone();
     let time_handle = time_item.clone();
 
+    // Load tray icon from embedded PNG
+    let icon_data = include_bytes!("../icons/32x32.png");
+    let icon_img = image::load_from_memory(icon_data).expect("Failed to load tray icon");
+    let rgba = icon_img.to_rgba8();
+    let (w, h) = rgba.dimensions();
+    let icon = tauri::image::Image::new_owned(rgba.into_raw(), w, h);
+
     let _tray = TrayIconBuilder::new()
+        .icon(icon)
         .menu(&menu)
         .tooltip("DevPulse - Productivity Tracker")
         .on_menu_event(move |app, event| {
