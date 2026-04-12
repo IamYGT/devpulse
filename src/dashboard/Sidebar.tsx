@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useTrackerState } from "../hooks/useTrackerState";
-import NotificationBell from "./components/NotificationBell";
+// NotificationBell disabled for stability
+// import NotificationBell from "./components/NotificationBell";
 
 function formatMinutes(m: number): string {
   const h = Math.floor(m / 60);
@@ -200,7 +201,7 @@ export default function Sidebar() {
               {statusText}
             </span>
           </div>
-          <NotificationBell />
+          {/* NotificationBell disabled for stability */}
         </div>
 
         {state?.current_project && (
