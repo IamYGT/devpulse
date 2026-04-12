@@ -514,3 +514,15 @@ pub struct WeeklySummaryItem {
     pub this_week_minutes: i64,
     pub last_week_minutes: i64,
 }
+
+#[tauri::command]
+pub fn get_app_logs(_state: tauri::State<'_, AppState>) -> Vec<String> {
+    let log_dir = std::env::var("APPDATA")
+        .map(|p| std::path::PathBuf::from(p).join("com.ygtlabs.devpulse"))
+        .unwrap_or_else(|_| std::path::PathBuf::from("."));
+    let log_path = log_dir.join("devpulse.log");
+    match std::fs::read_to_string(&log_path) {
+        Ok(content) => content.lines().rev().take(100).map(String::from).collect(),
+        Err(_) => vec!["Log dosyasi bulunamadi".to_string()],
+    }
+}

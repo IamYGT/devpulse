@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTrackerState } from "../../hooks/useTrackerState";
 import { useInterval } from "../../hooks/useInterval";
+import ErrorBoundary from "../../components/ErrorBoundary";
 import type { DailySummary, TimelineEntry } from "../../types";
+
+const TimeDistributionBar = React.lazy(() => import("../components/TimeDistributionBar"));
+const WorkSessionCard = React.lazy(() => import("../components/WorkSessionCard"));
+const DailyGoalCards = React.lazy(() => import("../components/DailyGoalCards"));
 
 function formatMinutes(min: number): string {
   const h = Math.floor(min / 60);
@@ -69,6 +74,18 @@ export default function TodayPage() {
         </div>
       </div>
 
+      {/* Time Distribution Bar */}
+      <ErrorBoundary>
+        <React.Suspense fallback={null}>
+          <TimeDistributionBar
+            productive={productiveMinutes}
+            distracting={distractingMinutes}
+            idle={summaries.reduce((a, s) => a + s.idle_minutes, 0)}
+            neutral={totalMinutes - productiveMinutes - distractingMinutes - summaries.reduce((a, s) => a + s.idle_minutes, 0)}
+          />
+        </React.Suspense>
+      </ErrorBoundary>
+
       {/* Current Activity */}
       {state && (
         <div className="card">
@@ -93,6 +110,13 @@ export default function TodayPage() {
           </div>
         </div>
       )}
+
+      {/* Work Session Card */}
+      <ErrorBoundary>
+        <React.Suspense fallback={null}>
+          <WorkSessionCard />
+        </React.Suspense>
+      </ErrorBoundary>
 
       {/* Timeline */}
       {timeline.length > 0 && (
@@ -141,6 +165,13 @@ export default function TodayPage() {
           </div>
         </div>
       )}
+
+      {/* Daily Goal Cards */}
+      <ErrorBoundary>
+        <React.Suspense fallback={null}>
+          <DailyGoalCards />
+        </React.Suspense>
+      </ErrorBoundary>
 
       {summaries.length === 0 && timeline.length === 0 && (
         <div className="empty-state">

@@ -28,6 +28,27 @@ use tracker::window_tracker::WindowTracker;
 use tracker::git_monitor::GitMonitor;
 use budget::manager::{BudgetManager, BudgetAlertType};
 
+/// Write a log entry to devpulse.log file
+fn log_to_file(level: &str, message: &str) {
+    let log_dir = dirs_next().unwrap_or_else(|| std::path::PathBuf::from("."));
+    let log_path = log_dir.join("devpulse.log");
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+    let entry = format!("[{}] [{}] {}\n", timestamp, level, message);
+
+    // Append to log file
+    use std::io::Write;
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+    {
+        let _ = file.write_all(entry.as_bytes());
+    }
+
+    // Also print to stderr for dev mode
+    eprint!("{}", entry);
+}
+
 fn get_db_path() -> String {
     let app_dir = dirs_next().unwrap_or_else(|| std::path::PathBuf::from("."));
     let db_path = app_dir.join("devpulse.db");
@@ -165,6 +186,7 @@ pub fn run() {
             commands::get_project_last_active,
             commands::get_project_week_commits,
             commands::get_weekly_summaries,
+            commands::get_app_logs,
             // Automation commands
             automation::commands::get_automation_rules,
             automation::commands::create_automation_rule,
@@ -197,8 +219,12 @@ pub fn run() {
             notes::commands::get_today_journal,
         ])
         .setup(move |app| {
+            log_to_file("INFO", &format!("DevPulse v{} starting...", env!("CARGO_PKG_VERSION")));
+
             // Setup system tray (enhanced version)
-            tray_menu::setup_enhanced_tray(app)?;
+            if let Err(e) = tray_menu::setup_enhanced_tray(app) {
+                log_to_file("ERROR", &format!("Tray setup failed: {:?}", e));
+            }
 
             // Start background tracking loop
             let state_clone = tracker_state.clone();
@@ -219,7 +245,7 @@ pub fn run() {
                             Ok(s) => s.is_tracking,
                             Err(poisoned) => {
                                 // Recover from poisoned mutex
-                                eprintln!("[DevPulse] Tracker state mutex poisoned, recovering");
+                                log_to_file("WARN", "Tracker state mutex poisoned, recovering");
                                 poisoned.into_inner().is_tracking
                             }
                         }
@@ -230,7 +256,7 @@ pub fn run() {
                         if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                             window_tracker.tick();
                         })) {
-                            eprintln!("[DevPulse] Window tracker tick failed: {:?}", e);
+                            log_to_file("ERROR", &format!("Window tracker tick failed: {:?}", e));
                         }
 
                         // Git check every 30 seconds (15 ticks)
@@ -238,7 +264,7 @@ pub fn run() {
                             if let Err(e) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                                 git_monitor.check_projects();
                             })) {
-                                eprintln!("[DevPulse] Git monitor check failed: {:?}", e);
+                                log_to_file("ERROR", &format!("Git monitor check failed: {:?}", e));
                             }
                         }
 
@@ -253,7 +279,7 @@ pub fn run() {
                                     }
                                 }
                                 Err(e) => {
-                                    eprintln!("[DevPulse] Budget check failed: {:?}", e);
+                                    log_to_file("ERROR", &format!("Budget check failed: {:?}", e));
                                 }
                             }
                         }
@@ -282,7 +308,7 @@ pub fn run() {
                                     }
                                 }
                             })) {
-                                eprintln!("[DevPulse] Enforcement check failed: {:?}", e);
+                                log_to_file("ERROR", &format!("Enforcement check failed: {:?}", e));
                             }
                         }
 
@@ -333,7 +359,7 @@ pub fn run() {
                                     }
                                 }
                             })) {
-                                eprintln!("[DevPulse] Scheduler adherence check failed: {:?}", e);
+                                log_to_file("ERROR", &format!("Scheduler check failed: {:?}", e));
                             }
                         }
 
@@ -379,7 +405,7 @@ pub fn run() {
                                     }
                                 }
                             })) {
-                                eprintln!("[DevPulse] Automation rules check failed: {:?}", e);
+                                log_to_file("ERROR", &format!("Automation rules check failed: {:?}", e));
                             }
                         }
                     }
@@ -395,6 +421,7 @@ pub fn run() {
             let receiver = tracker::http_receiver::HttpReceiver::new(http_state, http_db);
             receiver.start();
 
+            log_to_file("INFO", "DevPulse started successfully");
             Ok(())
         })
         .run(tauri::generate_context!())

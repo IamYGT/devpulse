@@ -31,7 +31,7 @@ export default function GitPage() {
 
   return (
     <div>
-      <h1 className="page-title">Git Activity</h1>
+      <h1 className="page-title">Git Aktivitesi</h1>
 
       {/* Project selector */}
       {projects.length > 0 && (
@@ -51,7 +51,7 @@ export default function GitPage() {
       {/* Commit list */}
       {events.length > 0 ? (
         <div className="card">
-          <div className="card-title">Today's Commits</div>
+          <div className="card-title">Bugunun Commitleri</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {events.map((e) => (
               <div
@@ -97,7 +97,7 @@ export default function GitPage() {
                     lineHeight: 1.4,
                   }}
                 >
-                  {e.message || "(no message)"}
+                  {e.message || "(mesaj yok)"}
                 </div>
 
                 {/* Lines added/removed */}
@@ -116,11 +116,11 @@ export default function GitPage() {
         </div>
       ) : (
         <div className="empty-state">
-          <h3>No commits today</h3>
+          <h3>Bugun commit yok</h3>
           <p>
             {selectedProject
-              ? "No commits have been made in this project today."
-              : "Select a project to view commits."}
+              ? "Bu projede bugun henuz commit atilmamis."
+              : "Commit gormek icin bir proje sec."}
           </p>
         </div>
       )}

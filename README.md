@@ -1,24 +1,26 @@
 # DevPulse
 
-**Developer Productivity Tracker for Windows**
+**Intelligent Developer Productivity Tracker for Windows**
 
-DevPulse is a native Windows desktop application that tracks your coding activity in real-time. It monitors which applications you use, what you're working on in VS Code, which browser tabs are active, and gives you detailed productivity analytics - all while keeping your data 100% local.
+DevPulse is a native Windows desktop application that tracks your coding activity, analyzes productivity patterns, and helps you stay focused with smart scheduling, enforcement, and automation. It monitors applications, VS Code, Chrome tabs, git activity, and Claude Code sessions -- all while keeping your data 100% local.
 
 Built with **Tauri v2** (Rust backend + React/TypeScript frontend) for minimal resource usage (~30MB RAM, 16MB binary).
 
+> **v0.9.0** -- 175 files, 37,977 lines of code, 19 pages, 71 components, 28 Rust modules, 70+ Tauri commands.
+
 ## Features
 
-### Real-Time Tracking
-- **Window Monitoring** - Tracks active window title and process name every 2 seconds
-- **VS Code Integration** - Detects workspace, active file, language, git branch, debug state
-- **Chrome Tab Tracking** - Monitors active tab URL and domain via Chrome Extension
-- **Git Activity** - Tracks commits, branches, lines added/removed per project
-- **Claude Code Detection** - Monitors Claude Code sessions and duration
-- **Idle Detection** - Detects AFK periods using Windows `GetLastInputInfo` API
-- **App Categorization** - Classifies apps as productive, distracting, or neutral (100+ site patterns)
+### Activity Tracking
+- **Window Monitoring** -- Tracks active window title and process name every 2 seconds
+- **VS Code Integration** -- Detects workspace, active file, language, git branch, debug state
+- **Chrome Tab Tracking** -- Monitors active tab URL and domain via Chrome Extension
+- **Git Activity** -- Tracks commits, branches, lines added/removed per project
+- **Claude Code Detection** -- Monitors Claude Code sessions and duration
+- **Idle Detection** -- Detects AFK periods using Windows `GetLastInputInfo` API
+- **App Categorization** -- Classifies apps as productive, distracting, or neutral (100+ site patterns)
 
 ### MiniBar Widget
-Always-on-top transparent overlay at the top of your screen showing:
+Taskbar-docked, always-on-top compact widget showing:
 - Current project name and category (color-coded)
 - Git branch and active file
 - Live timer (HH:MM:SS)
@@ -27,26 +29,59 @@ Always-on-top transparent overlay at the top of your screen showing:
 - Auto-hide mode (collapses to 4px after 3 seconds)
 - Resizable and draggable
 
-### Dashboard (8 Pages)
-- **Today** - Daily summary with stats cards, activity timeline, and project breakdown
-- **Week** - 7-day trends with stacked bar charts, productivity line chart, and commit history
-- **Git** - Per-project commit list with hash, branch, message, and diff stats
-- **Budget** - Project time budgets with progress bars and inline editing
-- **Settings** - Tracking control, idle threshold, app categories, autostart, OTA updates
-- **Pomodoro** - 25/5 timer with circular progress, focus mode, session counter
-- **Monthly** - GitHub-style heatmap calendar with productivity color coding
-- **Export** - CSV/JSON data export and daily markdown reports
+### Dashboard (19 Pages)
+
+| Page | Description |
+|------|-------------|
+| **Today** | Daily summary with stat cards, activity timeline, project breakdown |
+| **Week** | 7-day trends with stacked bar charts, productivity line chart, commit history |
+| **Monthly** | GitHub-style heatmap calendar with productivity color coding |
+| **Git** | Per-project commit list with hash, branch, message, diff stats |
+| **Budget** | Project time budgets with progress bars and inline editing |
+| **Pomodoro** | 25/5 timer with circular progress, focus mode, session counter |
+| **Activity** | Detailed activity log and session history |
+| **Insights** | AI-powered pattern detection and productivity analysis |
+| **Scheduler** | Smart auto-planning with time block suggestions |
+| **Enforcement** | 4-level escalating warning system for budget overruns |
+| **Projects** | Project management with paths, budgets, and category assignment |
+| **Morning Brief** | Auto-show daily briefing with yesterday's summary and today's plan |
+| **Automation** | Rules engine for automated actions based on triggers and conditions |
+| **Notes** | Full-featured note-taking system (see below) |
+| **Export** | CSV/JSON data export and daily markdown reports |
+| **Extensions** | Chrome Extension and VS Code Extension setup and status |
+| **Data Health** | Data integrity checker and database diagnostics |
+| **Settings** | Tracking control, themes, idle threshold, categories, autostart, OTA updates |
+| **Welcome** | Onboarding and first-run setup |
+
+### Notes System
+A Notion + Sublime Text + Todoist hybrid built into the dashboard:
+- Markdown editor with live preview
+- Code snippet support with syntax highlighting
+- Todo lists with checkboxes and progress tracking
+- Tags and categories for organization
+- Journal mode for daily entries
+- Quick capture for fast note creation
 
 ### Smart Features
-- **Project Time Budgets** - Set daily limits per project, get Windows notifications at 80% and 100%
-- **Pomodoro Timer** - Built-in 25min work / 5min break cycles with notifications
-- **Streak Tracking** - Track consecutive productive days
-- **Daily Goals** - Set targets for productive hours, commits, or productivity score
-- **OTA Updates** - Auto-update via GitHub Releases (signed with Ed25519)
+- **Smart Scheduler** -- Auto-plans your day based on project priorities and historical patterns
+- **Enforcement System** -- 4-level escalating warnings (gentle reminder, strong warning, block suggestion, forced break) when exceeding time budgets
+- **Morning Brief** -- Automatically shows a daily briefing on app launch with previous day summary and suggested plan
+- **End-of-Day Summary** -- Generates a wrap-up of what you accomplished
+- **AI Insights** -- Pattern detection across your work sessions to surface trends and recommendations
+- **Automation Rules Engine** -- Create trigger-based rules (e.g., "if coding >3h without break, show notification")
+- **Project Time Budgets** -- Set daily limits per project, get Windows notifications at 80% and 100%
+- **Pomodoro Timer** -- 25min work / 5min break cycles with notifications
+- **Streak Tracking** -- Consecutive productive days counter
+- **5 Theme Options** -- Customizable UI themes
+- **OTA Auto-Update** -- Signed updates via GitHub Releases (Ed25519)
+- **Data Integrity Checker** -- Validates database consistency and repairs issues
 
 ### Extensions
-- **Chrome Extension** - Tracks active tab URL/domain, sends to DevPulse via localhost HTTP
-- **VS Code Extension** - Tracks file, language, branch, debug state, terminal activity
+- **Chrome Extension** -- Tracks active tab URL/domain, sends to DevPulse via localhost HTTP
+- **VS Code Extension** -- Tracks file, language, branch, debug state, terminal activity
+
+### UI Components
+71 reusable components including shared utilities: StatCard, SkipLink, Toast, Tooltip, Modal, ProgressRing, SearchInput, TabGroup, StatusBadge, ErrorBoundary, LoadingSpinner, EmptyState, and PageTransition.
 
 ## Tech Stack
 
@@ -60,6 +95,7 @@ Always-on-top transparent overlay at the top of your screen showing:
 | Windows API | `windows` crate (GetForegroundWindow, GetLastInputInfo) |
 | Git | `git2` crate (libgit2) |
 | Updates | tauri-plugin-updater + GitHub Releases |
+| Notifications | tauri-plugin-notification |
 | Icons | Lucide React |
 
 ## Installation
@@ -105,26 +141,39 @@ Then in VS Code: `Developer: Install Extension from Location...` > select `exten
 
 ```
 devpulse/
-├── src-tauri/src/           # Rust backend
-│   ├── tracker/             # Window, idle, VS Code, git, Claude detection
-│   ├── db/                  # SQLite schema + queries
-│   ├── budget/              # Project time budget manager
-│   ├── pomodoro/            # Pomodoro timer engine
-│   ├── export/              # CSV/JSON export + daily reports
-│   ├── charts/              # Heatmap, category breakdown queries
-│   ├── goals/               # Streaks + daily goals
-│   ├── commands.rs          # Tauri IPC commands
-│   ├── models.rs            # Shared data structures
-│   └── lib.rs               # App setup, plugins, background threads
-├── src/                     # React frontend
-│   ├── minibar/             # Always-on-top widget
-│   ├── dashboard/           # Main dashboard with 8 pages
-│   ├── hooks/               # useTrackerState, useInterval, usePomodoroState
-│   └── types.ts             # TypeScript interfaces
+├── src-tauri/src/              # Rust backend (28 modules)
+│   ├── tracker/                # Window, idle, VS Code, git, Claude detection
+│   ├── db/                     # SQLite schema + queries
+│   ├── budget/                 # Project time budget manager
+│   ├── pomodoro/               # Pomodoro timer engine
+│   ├── export/                 # CSV/JSON export + daily reports
+│   ├── charts/                 # Heatmap, category breakdown queries
+│   ├── goals/                  # Streaks + daily goals
+│   ├── scheduler/              # Smart auto-planning engine
+│   ├── enforcement/            # 4-level escalating warning system
+│   ├── intelligence/           # AI insights and pattern detection
+│   ├── automation/             # Rules engine (triggers, conditions, actions)
+│   ├── notes/                  # Notes system backend
+│   ├── notifications/          # Windows notification manager
+│   ├── security/               # App security utilities
+│   ├── performance/            # Performance monitoring
+│   ├── backup/                 # Database backup management
+│   ├── commands.rs             # 70+ Tauri IPC commands
+│   ├── models.rs               # Shared data structures
+│   └── lib.rs                  # App setup, plugins, background threads
+├── src/                        # React frontend (71 components)
+│   ├── minibar/                # Taskbar-docked widget
+│   ├── dashboard/
+│   │   ├── pages/              # 19 dashboard pages
+│   │   ├── notes/              # Notes subsystem UI
+│   │   └── components/         # Dashboard-specific components
+│   ├── components/             # Shared UI components
+│   ├── hooks/                  # Custom React hooks
+│   └── types.ts                # TypeScript interfaces
 ├── extensions/
-│   ├── chrome/              # Chrome tab tracker extension
-│   └── vscode/              # VS Code activity tracker extension
-└── .github/workflows/       # CI/CD for auto-releases
+│   ├── chrome/                 # Chrome tab tracker extension
+│   └── vscode/                 # VS Code activity tracker extension
+└── .github/workflows/          # CI/CD for auto-releases
 ```
 
 ## Database
@@ -144,13 +193,16 @@ All data is stored locally in SQLite at `%APPDATA%/com.ygtlabs.devpulse/devpulse
 | `streaks` | Consecutive productive day tracking |
 | `daily_goals` | Configurable daily targets |
 | `settings` | App configuration key-value store |
+| `notes` | Notes, todos, journal entries |
+| `automation_rules` | Trigger-based automation definitions |
+| `scheduler_blocks` | Scheduled time blocks |
 
 ## Privacy
 
-- All data stays on your machine - no cloud, no telemetry
+- All data stays on your machine -- no cloud, no telemetry
 - SQLite database in `%APPDATA%`
 - Extensions communicate only via `localhost:19876`
-- No keylogging - only window titles and process names
+- No keylogging -- only window titles and process names
 - You can pause tracking at any time
 
 ## Development
@@ -184,4 +236,4 @@ MIT
 
 ## Author
 
-**YGT Labs AI** - Built by [Ercan Yigit](https://github.com/IamYGT) with Claude Code
+**YGT Labs AI** -- Built by [Ercan Yigit](https://github.com/IamYGT) with Claude Code

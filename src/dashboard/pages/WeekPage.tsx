@@ -70,10 +70,10 @@ export default function WeekPage() {
   if (chartData.length === 0) {
     return (
       <div>
-        <h1 className="page-title">Weekly Trends</h1>
+        <h1 className="page-title">Haftalik Trendler</h1>
         <div className="empty-state">
-          <h3>No weekly data yet</h3>
-          <p>Trends will appear here after a few days of tracking.</p>
+          <h3>Henuz haftalik veri yok</h3>
+          <p>Birkac gun takip ettikten sonra trendler burada gorunecek.</p>
         </div>
       </div>
     );
@@ -81,14 +81,14 @@ export default function WeekPage() {
 
   return (
     <div>
-      <h1 className="page-title">Weekly Trends</h1>
+      <h1 className="page-title">Haftalik Trendler</h1>
 
       {/* Heatmap - yearly overview */}
       <HeatmapChart year={new Date().getFullYear()} />
 
       {/* Daily Working Hours - Stacked Bar */}
       <div className="card">
-        <div className="card-title">Daily Working Hours</div>
+        <div className="card-title">Gunluk Calisma Saatleri</div>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={chartData} barGap={2}>
             <XAxis dataKey="date" {...axisProps} />
@@ -106,14 +106,14 @@ export default function WeekPage() {
               dataKey="productive"
               stackId="hours"
               fill="#22c55e"
-              name="Productive"
+              name="Uretken"
               radius={[0, 0, 0, 0]}
             />
             <Bar
               dataKey="distracting"
               stackId="hours"
               fill="#ef4444"
-              name="Distracting"
+              name="Dikkat Dagitici"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
@@ -122,7 +122,7 @@ export default function WeekPage() {
 
       {/* Productivity Trend - Line */}
       <div className="card">
-        <div className="card-title">Productivity Trend</div>
+        <div className="card-title">Verimlilik Trendi</div>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={chartData}>
             <XAxis dataKey="date" {...axisProps} />
@@ -130,7 +130,7 @@ export default function WeekPage() {
             <Tooltip
               contentStyle={tooltipStyle}
               labelStyle={{ color: "#e0e0e0" }}
-              formatter={(value: number) => [`${value}%`, "Productivity"]}
+              formatter={(value: number) => [`${value}%`, "Verimlilik"]}
               cursor={{ stroke: "rgba(255,255,255,0.1)" }}
             />
             <Line
@@ -140,7 +140,7 @@ export default function WeekPage() {
               strokeWidth={2}
               dot={{ fill: "#3b82f6", r: 4, strokeWidth: 0 }}
               activeDot={{ fill: "#3b82f6", r: 6, strokeWidth: 2, stroke: "#fff" }}
-              name="Productivity %"
+              name="Verimlilik %"
             />
           </LineChart>
         </ResponsiveContainer>
@@ -148,7 +148,7 @@ export default function WeekPage() {
 
       {/* Daily Commits - Bar */}
       <div className="card">
-        <div className="card-title">Daily Commits</div>
+        <div className="card-title">Gunluk Commitler</div>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData}>
             <XAxis dataKey="date" {...axisProps} />
@@ -156,13 +156,13 @@ export default function WeekPage() {
             <Tooltip
               contentStyle={tooltipStyle}
               labelStyle={{ color: "#e0e0e0" }}
-              formatter={(value: number) => [value, "Commits"]}
+              formatter={(value: number) => [value, "Commitler"]}
               cursor={{ fill: "rgba(255,255,255,0.03)" }}
             />
             <Bar
               dataKey="commits"
               fill="#a855f7"
-              name="Commits"
+              name="Commitler"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

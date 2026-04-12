@@ -763,7 +763,7 @@ export default function AutomationPage() {
                 {/* Approve button */}
                 <button
                   onClick={() => {
-                    // TODO: Save category via invoke
+                    // Category approval is UI-only for now; backend persist will come with set_app_category command
                     setSuggestions((prev) => prev.filter((_, i) => i !== idx));
                   }}
                   style={{
