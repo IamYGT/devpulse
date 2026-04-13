@@ -46,16 +46,18 @@ async function sendTabUpdate() {
     lastSentData = fingerprint;
 
     // Persist stats
-    const stored = await chrome.storage.local.get(["trackedCount", "lastDomain", "lastUrl"]);
-    await chrome.storage.local.set({
-      trackedCount: (stored.trackedCount || 0) + 1,
-      lastDomain: domain,
-      lastUrl: activeTab.url,
-      connected: true,
-    });
+    if (chrome.storage && chrome.storage.local) {
+      const stored = await chrome.storage.local.get(["trackedCount"]);
+      await chrome.storage.local.set({
+        trackedCount: (stored.trackedCount || 0) + 1,
+        lastDomain: domain,
+        lastUrl: activeTab.url,
+        connected: true,
+      });
+    }
   } catch (err) {
     // DevPulse not running — silently fail, mark disconnected
-    await chrome.storage.local.set({ connected: false });
+    try { if (chrome.storage && chrome.storage.local) await chrome.storage.local.set({ connected: false }); } catch(_) {}
   }
 }
 
@@ -90,7 +92,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 // --- Setup on install ---
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create(ALARM_NAME, { periodInMinutes: ALARM_PERIOD_MINUTES });
-  chrome.storage.local.set({ trackedCount: 0, connected: false });
+  if (chrome.storage && chrome.storage.local) chrome.storage.local.set({ trackedCount: 0, connected: false });
   sendTabUpdate();
 });
 

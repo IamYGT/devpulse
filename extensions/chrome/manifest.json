@@ -3,7 +3,7 @@
   "name": "DevPulse Tab Tracker",
   "description": "Tracks active browser tabs for DevPulse productivity tracker",
   "version": "1.0.0",
-  "permissions": ["tabs", "activeTab", "alarms"],
+  "permissions": ["tabs", "activeTab", "alarms", "storage"],
   "host_permissions": ["http://localhost:19876/*"],
   "background": {
     "service_worker": "background.js"
