@@ -84,15 +84,29 @@ pub fn setup_enhanced_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::E
     // Spawn thread to update tray menu status every 10 seconds
     let app_handle = app.handle().clone();
     std::thread::spawn(move || {
+        let mut last_update = std::time::Instant::now();
         loop {
             std::thread::sleep(std::time::Duration::from_secs(10));
-            if let Some(state) = app_handle.try_state::<AppState>() {
-                if let Ok(s) = state.tracker_state.lock() {
-                    let project_text = format!("Proje: {}", s.current_project.as_deref().unwrap_or("-"));
-                    let time_text = format!("Sure: {}dk", s.today_total_minutes);
-                    let _ = project_handle.set_text(&project_text);
-                    let _ = time_handle.set_text(&time_text);
+
+            // Skip if system was likely asleep (gap > 60 seconds)
+            let now = std::time::Instant::now();
+            if now.duration_since(last_update).as_secs() > 60 {
+                last_update = now;
+                continue;
+            }
+            last_update = now;
+
+            if let Err(_) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                if let Some(state) = app_handle.try_state::<AppState>() {
+                    if let Ok(s) = state.tracker_state.lock() {
+                        let project_text = format!("Proje: {}", s.current_project.as_deref().unwrap_or("-"));
+                        let time_text = format!("Sure: {}dk", s.today_total_minutes);
+                        let _ = project_handle.set_text(&project_text);
+                        let _ = time_handle.set_text(&time_text);
+                    }
                 }
+            })) {
+                crate::log_to_file("ERROR", "Tray menu update failed");
             }
         }
     });

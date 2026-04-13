@@ -73,6 +73,11 @@ pub fn run() {
         log_to_file("FATAL", &msg);
     }));
 
+    // WebView2 GPU crash prevention: disable GPU acceleration
+    // This prevents crashes after sleep/wake when GPU process becomes unresponsive
+    std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "--disable-gpu --disable-gpu-compositing --disable-software-rasterizer");
+
     let db_path = get_db_path();
 
     // Initialize database with busy_timeout for sleep/wake resilience
@@ -428,6 +433,40 @@ pub fn run() {
             let http_db = db_path.clone();
             let receiver = tracker::http_receiver::HttpReceiver::new(http_state, http_db);
             receiver.start();
+
+            // Watchdog thread: detect sleep/wake and recover windows
+            let watchdog_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut last_check = std::time::Instant::now();
+                loop {
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    let now = std::time::Instant::now();
+                    let elapsed = now.duration_since(last_check);
+
+                    // If more than 30 seconds passed (should be ~5), system was likely asleep
+                    if elapsed.as_secs() > 30 {
+                        log_to_file("WARN", &format!(
+                            "Sleep/wake detected ({}s gap). Recovering windows...",
+                            elapsed.as_secs()
+                        ));
+
+                        // Try to reload dashboard webview after wake
+                        if let Some(window) = watchdog_handle.get_webview_window("dashboard") {
+                            if window.is_visible().unwrap_or(false) {
+                                // Evaluate JS to check if page is responsive
+                                let _ = window.eval("if(!document.getElementById('root')){location.reload()}");
+                            }
+                        }
+
+                        // Try to reload minibar webview after wake
+                        if let Some(window) = watchdog_handle.get_webview_window("minibar") {
+                            let _ = window.eval("if(!document.getElementById('root')){location.reload()}");
+                        }
+                    }
+
+                    last_check = now;
+                }
+            });
 
             log_to_file("INFO", "DevPulse started successfully");
             Ok(())
