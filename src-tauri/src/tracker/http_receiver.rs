@@ -47,12 +47,12 @@ impl HttpReceiver {
             let server = match tiny_http::Server::http("127.0.0.1:19876") {
                 Ok(s) => s,
                 Err(e) => {
-                    eprintln!("[DevPulse] Failed to start HTTP receiver: {:?}", e);
+                    crate::log_to_file("ERROR", &format!("Failed to start HTTP receiver: {:?}", e));
                     return;
                 }
             };
 
-            println!("[DevPulse] HTTP receiver listening on 127.0.0.1:19876");
+            crate::log_to_file("INFO", "HTTP receiver listening on 127.0.0.1:19876");
 
             for mut request in server.incoming_requests() {
                 let url = request.url().to_string();

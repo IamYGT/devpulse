@@ -67,11 +67,19 @@ fn dirs_next() -> Option<std::path::PathBuf> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Global panic hook - log panics to file instead of crashing silently
+    std::panic::set_hook(Box::new(|info| {
+        let msg = format!("PANIC: {}", info);
+        log_to_file("FATAL", &msg);
+    }));
+
     let db_path = get_db_path();
 
-    // Initialize database
+    // Initialize database with busy_timeout for sleep/wake resilience
     {
         let conn = rusqlite::Connection::open(&db_path).expect("Failed to open database");
+        // 5 second timeout prevents "database locked" errors after sleep
+        conn.busy_timeout(std::time::Duration::from_secs(5)).ok();
         db::schema::initialize_database(&conn).expect("Failed to initialize database");
         goals::streaks::initialize_streaks_table(&conn).ok();
         goals::daily_goals::initialize_goals_tables(&conn).ok();

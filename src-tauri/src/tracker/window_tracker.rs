@@ -31,6 +31,11 @@ fn get_foreground_window_info() -> Option<(String, u32)> {
         let mut pid: u32 = 0;
         GetWindowThreadProcessId(hwnd, Some(&mut pid));
 
+        // Guard: PID 0 means we couldn't get the process (sleep/wake transition)
+        if pid == 0 {
+            return None;
+        }
+
         Some((title, pid))
     }
 }
@@ -75,6 +80,16 @@ impl WindowTracker {
     pub fn tick(&mut self) {
         let idle = is_idle(120);
 
+        // Detect sleep/wake: if more than 10 minutes passed since last tick, reset
+        let now = Local::now();
+        let elapsed = (now - self.last_switch_time).num_seconds();
+        if elapsed > 600 {
+            // System was likely asleep - reset timing
+            self.last_switch_time = now;
+            self.last_window_title.clear();
+            return; // Skip this tick, resume normal on next
+        }
+
         // Refresh process list periodically (every ~10 ticks = 20 seconds)
         self.system.refresh_processes();
 
@@ -99,7 +114,7 @@ impl WindowTracker {
 
         // Open DB for category lookup and project detection
         let conn = match rusqlite::Connection::open(&self.db_path) {
-            Ok(c) => c,
+            Ok(c) => { c.busy_timeout(std::time::Duration::from_secs(5)).ok(); c },
             Err(_) => return,
         };
 
@@ -177,7 +192,7 @@ impl WindowTracker {
 
     fn save_activity(&self, duration: i64, idle: bool) {
         let conn = match rusqlite::Connection::open(&self.db_path) {
-            Ok(c) => c,
+            Ok(c) => { c.busy_timeout(std::time::Duration::from_secs(5)).ok(); c },
             Err(_) => return,
         };
 
